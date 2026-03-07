@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Company Registration - PlaceIIT{% endblock %}
+
+{% block content %}
+
+<h2>Company Registration</h2>
+<p>Register your company to post placement drives.</p>
+
+<p>
+<strong>Note:</strong> Your registration will be reviewed by the Placement Cell before you can post drives.
+</p>
+
+<form method="POST" action="{{ url_for('reg_company') }}">
+
+<h3>Account Credentials</h3>
+
+<label>Username *</label><br>
+<input type="text" name="username" required placeholder="e.g. google_hr" value="{{ form.get('username', '') }}"><br><br>
+
+<label>Email *</label><br>
+<input type="email" name="email" required placeholder="hr@company.com" value="{{ form.get('email', '') }}"><br><br>
+
+<label>Password *</label><br>
+<input type="password" name="password" placeholder="Minimum 6 characters" required><br><br>
+
+<label>Confirm Password *</label><br>
+<input type="password" name="confirm_password" placeholder="Repeat password" required><br><br>
+
+<hr>
+
+<h3>Company Details</h3>
+
+<label>Company Name *</label><br>
+<input type="text" name="company_name" required placeholder="e.g. Google India Pvt. Ltd." value="{{ form.get('company_name', '') }}"><br><br>
+
+<label>Industry</label><br>
+<select name="industry">
+<option value="">Select</option>
+{% for ind in industries %}
+<option value="{{ ind }}" {% if form.get('industry') == ind %}selected{% endif %}>
+{{ ind }}
+</option>
+{% endfor %}
+</select><br><br>
+
+<label>Location / HQ</label><br>
+<input type="text" name="location"
+placeholder="e.g. Bengaluru, Karnataka"
+value="{{ form.get('location', '') }}"><br><br>
+
+<label>Website</label><br>
+<input type="url" name="website"
+placeholder="https://www.company.com"
+value="{{ form.get('website', '') }}"><br><br>
+
+<label>Company Description</label><br>
+<textarea name="description" rows="3"
+placeholder="Brief description of your company and what you do">{{ form.get('description', '') }}</textarea>
+
+<br><br>
+
+<hr>
+
+<h3>HR Point of Contact</h3>
+
+<label>HR Name</label><br>
+<input type="text" name="hr_name"
+placeholder="e.g. Khushboo"
+value="{{ form.get('hr_name', '') }}"><br><br>
+
+<label>HR Contact</label><br>
+<input type="text" name="hr_contact"
+placeholder="Phone or email"
+value="{{ form.get('hr_contact', '') }}"><br><br>
+
+<button type="submit">Submit for Approval</button>
+
+</form>
+
+<p>
+Already registered?
+<a href="{{ url_for('login') }}">Login</a>
+</p>
+
+{% endblock %}

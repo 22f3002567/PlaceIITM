@@ -19,6 +19,13 @@ class User(UserMixin, db.Model):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default= datetime.utcnow)
     updated_at = db.Column(db.DateTime, default= datetime.utcnow, onupdate=datetime.utcnow)
+    is_blacklisted = db.Column(db.Boolean, default=False)
+    def is_admin(self):
+        return self.role == Admin_role
+    def is_company(self):
+        return self.role == Company_role
+    def is_student(self):
+        return self.role == Student_role
 
 class Company(db.Model):
     __tablename__ = "companies"

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PlaceIITM{% endblock %}</title>
+</head>
+<body>
+    <nav>
+        <div>
+            <a href="/">PlaceIITM</a>
+            <button class="navbar-toggler" type="button">Menu</button>
+            <div>
+                <ul>
+                    <li><a href="/login">Login</a></li>
+                    <li><a href="/reg_student">Register as Student</a></li>
+                    <li><a href="/reg_company">Register as Company</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    <footer>
+        PlaceIITM - Campus Placement Portal &copy; Siddharth Sahu 2026. MAD1 Project.
+    </footer>
+    
+</body>
+</html>
