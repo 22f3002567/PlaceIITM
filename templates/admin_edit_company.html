@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Edit Company — PlaceIIT{% endblock %}
+
+{% block content %}
+
+<p>
+<a href="{{ url_for('admin_companies') }}">Back to Companies</a>
+</p>
+
+<h2>Edit Company</h2>
+<p>{{ company.company_name }}</p>
+
+<hr>
+
+<form method="POST" action="{{ url_for('admin_edit_company', co_id=company.id) }}">
+
+<label>Company Name</label><br>
+<input type="text" name="company_name"
+value="{{ company.company_name }}" required>
+
+<br><br>
+
+<label>Industry</label><br>
+<select name="industry">
+<option value="">Select</option>
+{% for ind in industries %}
+<option value="{{ ind }}"
+{% if company.industry == ind %}selected{% endif %}>
+{{ ind }}
+</option>
+{% endfor %}
+</select>
+
+<br><br>
+
+<label>Location</label><br>
+<input type="text" name="location"
+value="{{ company.location or '' }}">
+
+<br><br>
+
+<label>Website</label><br>
+<input type="url" name="website"
+value="{{ company.website or '' }}">
+
+<br><br>
+
+<label>HR Name</label><br>
+<input type="text" name="hr_name"
+value="{{ company.hr_name or '' }}">
+
+<br><br>
+
+<label>HR Contact</label><br>
+<input type="text" name="hr_contact"
+value="{{ company.hr_contact or '' }}">
+
+<br><br>
+
+<label>Description</label><br>
+<textarea name="description" rows="3">{{ company.description or '' }}</textarea>
+
+<br><br>
+
+<button type="submit">Save Changes</button>
+
+<a href="{{ url_for('admin_companies') }}">Cancel</a>
+
+</form>
+
+{% endblock %}

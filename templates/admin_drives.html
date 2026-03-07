@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Manage Drives — PlaceIIT{% endblock %}
+
+{% block content %}
+
+<h2>Placement Drives</h2>
+<p>Approve, reject or close placement drives posted by companies.</p>
+
+<hr>
+
+<h3>Filter Drives</h3>
+
+<form method="GET" action="{{ url_for('admin_drives') }}">
+
+<label>Filter by Status</label><br>
+
+<select name="status">
+<option value="">All Statuses</option>
+<option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+<option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+<option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+<option value="closed" {% if status_filter == 'closed' %}selected{% endif %}>Closed</option>
+</select>
+
+<br><br>
+
+<button type="submit">Filter</button>
+<a href="{{ url_for('admin_drives') }}">Clear</a>
+
+</form>
+
+<hr>
+
+<h3>Placement Drives List</h3>
+
+{% if drives %}
+
+<table border="1">
+
+<tr>
+<th>#</th>
+<th>Company</th>
+<th>Job Title</th>
+<th>Type</th>
+<th>Salary</th>
+<th>Deadline</th>
+<th>Applications</th>
+<th>Status</th>
+<th>Actions</th>
+</tr>
+
+{% for drive in drives %}
+
+<tr>
+
+<td>{{ drive.id }}</td>
+
+<td>{{ drive.company.company_name }}</td>
+
+<td>{{ drive.job_title }}</td>
+
+<td>{{ drive.job_type or '—' }}</td>
+
+<td>{{ drive.salary_range or '—' }}</td>
+
+<td>
+{% if drive.application_deadline %}
+{{ drive.application_deadline.strftime('%d %b %Y') }}
+{% else %}
+—
+{% endif %}
+</td>
+
+<td>{{ drive.applications | length }}</td>
+
+<td>{{ drive.status }}</td>
+
+<td>
+
+{% if drive.status == 'pending' %}
+
+<form method="POST" action="{{ url_for('admin_approve_drive', drive_id=drive.id) }}">
+<button type="submit">Approve</button>
+</form>
+
+<form method="POST" action="{{ url_for('admin_reject_drive', drive_id=drive.id) }}">
+<button type="submit">Reject</button>
+</form>
+
+{% endif %}
+
+{% if drive.status == 'approved' %}
+
+<form method="POST" action="{{ url_for('admin_close_drive', drive_id=drive.id) }}">
+<button type="submit">Close</button>
+</form>
+
+{% endif %}
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% else %}
+
+<p>No drives found.</p>
+
+{% endif %}
+
+{% endblock %}

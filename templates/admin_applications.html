@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}All Applications - PlaceIITM{% endblock %}
+
+{% block content %}
+
+<h2>Applications</h2>
+<p>All placement applications across the portal.</p>
+
+<hr>
+
+<h3>Filter Applications</h3>
+
+<form method="GET" action="{{ url_for('admin_applications') }}">
+
+<label>Filter by Status</label><br>
+
+<select name="status">
+<option value="">All Statuses</option>
+
+{% for s in app_statuses %}
+<option value="{{ s }}" {% if status_filter == s %}selected{% endif %}>
+{{ s }}
+</option>
+{% endfor %}
+
+</select>
+
+<br><br>
+
+<button type="submit">Filter</button>
+<a href="{{ url_for('admin_applications') }}">Clear</a>
+
+</form>
+
+<hr>
+
+<h3>Applications List</h3>
+
+{% if applications %}
+
+<table border="1">
+
+<tr>
+<th>#</th>
+<th>Student</th>
+<th>Roll No.</th>
+<th>Company</th>
+<th>Role</th>
+<th>Applied On</th>
+<th>Status</th>
+</tr>
+
+{% for app in applications %}
+
+<tr>
+
+<td>{{ app.id }}</td>
+
+<td>
+<strong>{{ app.student.name }}</strong><br>
+{{ app.student.email }}
+</td>
+
+<td>{{ app.student.roll_number or '—' }}</td>
+
+<td>{{ app.drive.company.company_name }}</td>
+
+<td>{{ app.drive.job_title }}</td>
+
+<td>{{ app.application_date.strftime('%d %b %Y') }}</td>
+
+<td>{{ app.status }}</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% else %}
+
+<p>No applications found.</p>
+
+{% endif %}
+
+{% endblock %}

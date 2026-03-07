@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Manage Students - PlaceIITM{% endblock %}
+
+{% block content %}
+
+<h2>Students</h2>
+<p>View, search, manage and blacklist students.</p>
+
+<hr>
+
+<h3>Search</h3>
+
+<form method="GET" action="{{ url_for('admin_students') }}">
+
+<label>Search</label><br>
+<input type="text" name="search"
+placeholder="Name, roll number, email or phone…"
+value="{{ search }}">
+
+<br><br>
+
+<button type="submit">Search</button>
+<a href="{{ url_for('admin_students') }}">Clear</a>
+
+</form>
+
+<hr>
+
+<h3>Students List</h3>
+
+{% if students %}
+
+<table border="1">
+
+<tr>
+<th>#</th>
+<th>Name</th>
+<th>Roll No.</th>
+<th>Department</th>
+<th>CGPA</th>
+<th>Applications</th>
+<th>Blacklisted</th>
+<th>Actions</th>
+</tr>
+
+{% for st in students %}
+
+<tr>
+
+<td>{{ st.id }}</td>
+
+<td>
+<strong>{{ st.name }}</strong><br>
+{{ st.email }}
+</td>
+
+<td>{{ st.roll_number or '—' }}</td>
+
+<td>{{ st.department or '—' }}</td>
+
+<td>{{ st.cgpa or '—' }}</td>
+
+<td>{{ st.applications | length }}</td>
+
+<td>
+{% if st.user.is_blacklisted %}
+Yes
+{% else %}
+No
+{% endif %}
+</td>
+
+<td>
+
+<a href="{{ url_for('admin_edit_student', st_id=st.id) }}">Edit</a>
+
+<form method="POST" action="{{ url_for('admin_toggle_blacklist_student', st_id=st.id) }}">
+<button type="submit">
+{% if st.user.is_blacklisted %}Unblacklist{% else %}Blacklist{% endif %}
+</button>
+</form>
+
+<form method="POST" action="{{ url_for('admin_delete_student', st_id=st.id) }}">
+<button type="submit">Delete</button>
+</form>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% else %}
+
+<p>No students found.</p>
+
+{% endif %}
+
+{% endblock %}

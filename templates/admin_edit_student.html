@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Edit Student - PlaceIITM{% endblock %}
+
+{% block content %}
+
+<p>
+<a href="{{ url_for('admin_students') }}">Back to Students</a>
+</p>
+
+<h2>Edit Student</h2>
+<p>{{ student.name }} — {{ student.roll_number }}</p>
+
+<hr>
+
+<form method="POST" action="{{ url_for('admin_edit_student', st_id=student.id) }}">
+
+<label>Full Name</label><br>
+<input type="text" name="name"
+value="{{ student.name }}" required>
+
+<br><br>
+
+<label>Phone</label><br>
+<input type="text" name="phone"
+value="{{ student.phone or '' }}">
+
+<br><br>
+
+<label>Department</label><br>
+<select name="department">
+<option value="">Select</option>
+{% for d in departments %}
+<option value="{{ d }}"
+{% if student.department == d %}selected{% endif %}>
+{{ d }}
+</option>
+{% endfor %}
+</select>
+
+<br><br>
+
+<label>Degree</label><br>
+<select name="degree">
+<option value="">Select</option>
+{% for d in degrees %}
+<option value="{{ d }}"
+{% if student.degree == d %}selected{% endif %}>
+{{ d }}
+</option>
+{% endfor %}
+</select>
+
+<br><br>
+
+<label>Graduation Year</label><br>
+<input type="number" name="graduation_year"
+value="{{ student.graduation_year or '' }}"
+min="2020" max="2035">
+
+<br><br>
+
+<label>CGPA</label><br>
+<input type="number" name="cgpa"
+value="{{ student.cgpa or '' }}"
+step="0.01" min="0" max="10">
+
+<br><br>
+
+<label>Skills</label><br>
+<input type="text" name="skills"
+value="{{ student.skills or '' }}"
+placeholder="Comma-separated">
+
+<br><br>
+
+<label>Bio</label><br>
+<textarea name="bio" rows="2"
+placeholder="Short bio…">{{ student.bio or '' }}</textarea>
+
+<br><br>
+
+<button type="submit">Save Changes</button>
+<a href="{{ url_for('admin_students') }}">Cancel</a>
+
+</form>
+
+{% endblock %}

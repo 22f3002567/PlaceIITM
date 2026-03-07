@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard - PlaceIIT{% endblock %}
+
+{% block content %}
+
+<h2>Admin Dashboard</h2>
+<p>Welcome back, {{ current_user.username }}</p>
+
+{% if pending_cos > 0 or pending_drives > 0 %}
+<div>
+    <strong>Action Required:</strong>
+
+    {% if pending_cos > 0 %}
+        {{ pending_cos }} company registration(s) awaiting approval.
+    {% endif %}
+
+    {% if pending_drives > 0 %}
+        {{ pending_drives }} placement drive(s) awaiting approval.
+    {% endif %}
+
+    <br>
+    <a href="{{ url_for('admin_companies') }}">Review Companies</a> |
+    <a href="{{ url_for('admin_drives') }}">Review Drives</a>
+</div>
+{% endif %}
+
+<hr>
+
+<h3>Statistics</h3>
+
+<p><strong>Students:</strong> {{ total_students }}</p>
+<p><strong>Companies:</strong> {{ total_companies }}</p>
+<p><strong>Drives Posted:</strong> {{ total_drives }}</p>
+<p><strong>Total Selected:</strong> {{ total_selected }}</p>
+
+<hr>
+
+<h3>Quick Actions</h3>
+
+<p>
+<a href="{{ url_for('admin_companies') }}">Pending Companies ({{ pending_cos }})</a>
+</p>
+
+<p>
+<a href="{{ url_for('admin_drives') }}">Pending Drives ({{ pending_drives }})</a>
+</p>
+
+<p>
+<a href="{{ url_for('admin_students') }}">Manage Students</a>
+</p>
+
+<p>
+<a href="{{ url_for('admin_applications') }}">All Applications</a>
+</p>
+
+
+<h3>Recent Applications</h3>
+
+{% if recent_apps %}
+<table border="1">
+    <tr>
+        <th>Student</th>
+        <th>Roll No.</th>
+        <th>Company</th>
+        <th>Role</th>
+        <th>Date</th>
+        <th>Status</th>
+    </tr>
+
+    {% for app in recent_apps %}
+    <tr>
+        <td>{{ app.student.name }}</td>
+        <td>{{ app.student.roll_number }}</td>
+        <td>{{ app.drive.company.company_name }}</td>
+        <td>{{ app.drive.job_title }}</td>
+        <td>{{ app.application_date.strftime('%d %b %Y') }}</td>
+        <td>{{ app.status }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<p>No applications yet.</p>
+{% endif %}
+
+<hr>
+
+<h3>Recently Registered Companies</h3>
+
+{% if recent_cos %}
+<table border="1">
+    <tr>
+        <th>Company</th>
+        <th>Industry</th>
+        <th>Location</th>
+        <th>Registered</th>
+        <th>Status</th>
+    </tr>
+
+    {% for co in recent_cos %}
+    <tr>
+        <td>{{ co.company_name }}</td>
+        <td>{{ co.industry or '—' }}</td>
+        <td>{{ co.location or '—' }}</td>
+        <td>{{ co.registered_at.strftime('%d %b %Y') }}</td>
+        <td>{{ co.approval_status }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<p>No companies registered yet.</p>
+{% endif %}
+
+{% endblock %}

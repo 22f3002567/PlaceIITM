@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Manage Companies — PlaceIIT{% endblock %}
+
+{% block content %}
+
+<h2>Companies</h2>
+<p>Approve, manage and monitor registered companies.</p>
+
+<hr>
+
+<h3>Search & Filter</h3>
+
+<form method="GET" action="{{ url_for('admin_companies') }}">
+
+<label>Search</label><br>
+<input type="text" name="search" placeholder="Company name…" value="{{ search }}">
+
+<br><br>
+
+<label>Status</label><br>
+<select name="status">
+<option value="">All</option>
+<option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+<option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+<option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+</select>
+
+<br><br>
+
+<button type="submit">Filter</button>
+<a href="{{ url_for('admin_companies') }}">Clear</a>
+
+</form>
+
+<hr>
+
+<h3>Companies List</h3>
+
+{% if companies %}
+
+<table border="1">
+
+<tr>
+<th>#</th>
+<th>Company</th>
+<th>Industry</th>
+<th>HR Contact</th>
+<th>Drives</th>
+<th>Status</th>
+<th>Blacklisted</th>
+<th>Actions</th>
+</tr>
+
+{% for co in companies %}
+
+<tr>
+
+<td>{{ co.id }}</td>
+
+<td>
+<strong>{{ co.company_name }}</strong><br>
+{{ co.user.email }}
+</td>
+
+<td>{{ co.industry or '—' }}</td>
+
+<td>
+{{ co.hr_name or '—' }}<br>
+{{ co.hr_contact or '' }}
+</td>
+
+<td>{{ co.drives | length }}</td>
+
+<td>{{ co.approval_status }}</td>
+
+<td>
+{% if co.user.is_blacklisted %}
+Yes
+{% else %}
+No
+{% endif %}
+</td>
+
+<td>
+
+{% if co.approval_status != 'approved' %}
+<form method="POST" action="{{ url_for('admin_approve_company', co_id=co.id) }}">
+<button type="submit">Approve</button>
+</form>
+{% endif %}
+
+{% if co.approval_status != 'rejected' %}
+<form method="POST" action="{{ url_for('admin_reject_company', co_id=co.id) }}">
+<button type="submit">Reject</button>
+</form>
+{% endif %}
+
+<form method="POST" action="{{ url_for('admin_toggle_blacklist_company', co_id=co.id) }}">
+<button type="submit">
+{% if co.user.is_blacklisted %}Unblacklist{% else %}Blacklist{% endif %}
+</button>
+</form>
+
+<a href="{{ url_for('admin_edit_company', co_id=co.id) }}">Edit</a>
+
+<form method="POST" action="{{ url_for('admin_delete_company', co_id=co.id) }}">
+<button type="submit">Delete</button>
+</form>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% else %}
+
+<p>No companies found.</p>
+
+{% endif %}
+
+{% endblock %}
