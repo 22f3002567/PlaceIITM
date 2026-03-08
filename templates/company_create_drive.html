@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Post Drive- PlaceIIT{% endblock %}
+
+{% block content %}
+
+<p>
+<a href="{{ url_for('company_dashboard') }}">Back to Dashboard</a>
+</p>
+
+<h2>Post a Placement Drive</h2>
+<p>Fill in the details below. The drive will be reviewed by admin before students can apply.</p>
+
+<hr>
+
+<form method="POST" action="{{ url_for('company_create_drive') }}">
+
+<h3>Job Details</h3>
+
+<label>Job Title *</label><br>
+<input type="text" name="job_title" required
+placeholder="e.g. Software Development Engineer"
+value="{{ form.get('job_title', '') }}">
+
+<br><br>
+
+<label>Job Type</label><br>
+<select name="job_type">
+<option value="">Select</option>
+{% for jt in job_types %}
+<option value="{{ jt }}"
+{% if form.get('job_type') == jt %}selected{% endif %}>
+{{ jt }}
+</option>
+{% endfor %}
+</select>
+
+<br><br>
+
+<label>Salary / CTC</label><br>
+<input type="text" name="salary_range"
+placeholder="e.g. 12–18 LPA"
+value="{{ form.get('salary_range', '') }}">
+
+<br><br>
+
+<label>Location</label><br>
+<input type="text" name="location"
+placeholder="e.g. Bengaluru / Remote"
+value="{{ form.get('location', '') }}">
+
+<br><br>
+
+<label>Job Description *</label><br>
+<textarea name="job_description" rows="4" required
+placeholder="Describe the role, responsibilities and day-to-day work…">{{ form.get('job_description', '') }}</textarea>
+
+<br><br>
+
+<hr>
+
+<h3>Eligibility & Requirements</h3>
+
+<label>Eligibility Criteria</label><br>
+<textarea name="eligibility_criteria" rows="2"
+placeholder="e.g. B.Tech CSE/IT, CGPA ≥ 7.0, no active backlogs…">{{ form.get('eligibility_criteria', '') }}</textarea>
+
+<br><br>
+
+<label>Required Skills (comma-separated)</label><br>
+<input type="text" name="required_skills"
+placeholder="e.g. Python, Django, REST APIs, SQL"
+value="{{ form.get('required_skills', '') }}">
+
+<br><br>
+
+<hr>
+
+<h3>Application Deadline</h3>
+
+<label>Deadline *</label><br>
+<input type="date" name="application_deadline" required
+value="{{ form.get('application_deadline', '') }}">
+
+<br><br>
+
+<button type="submit">Submit for Approval</button>
+<a href="{{ url_for('company_dashboard') }}">Cancel</a>
+
+</form>
+
+{% endblock %}

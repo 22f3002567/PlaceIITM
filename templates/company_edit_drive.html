@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Edit Drive- PlaceIIT{% endblock %}
+
+{% block content %}
+
+<p>
+<a href="{{ url_for('company_dashboard') }}">Back to Dashboard</a>
+</p>
+
+<h2>Edit Placement Drive</h2>
+<p>{{ drive.job_title }}</p>
+
+<p>
+<strong>Note:</strong> Saving changes will re-submit this drive for admin approval.
+</p>
+
+<hr>
+
+<form method="POST" action="{{ url_for('company_edit_drive', drive_id=drive.id) }}">
+
+<label>Job Title *</label><br>
+<input type="text" name="job_title" required
+value="{{ drive.job_title }}">
+
+<br><br>
+
+<label>Job Type</label><br>
+<select name="job_type">
+<option value="">Select</option>
+{% for jt in job_types %}
+<option value="{{ jt }}"
+{% if drive.job_type == jt %}selected{% endif %}>
+{{ jt }}
+</option>
+{% endfor %}
+</select>
+
+<br><br>
+
+<label>Salary / CTC</label><br>
+<input type="text" name="salary_range"
+value="{{ drive.salary_range or '' }}">
+
+<br><br>
+
+<label>Location</label><br>
+<input type="text" name="location"
+value="{{ drive.location or '' }}">
+
+<br><br>
+
+<label>Job Description *</label><br>
+<textarea name="job_description" rows="4" required>{{ drive.job_description or '' }}</textarea>
+
+<br><br>
+
+<label>Eligibility Criteria</label><br>
+<textarea name="eligibility_criteria" rows="2">{{ drive.eligibility_criteria or '' }}</textarea>
+
+<br><br>
+
+<label>Required Skills</label><br>
+<input type="text" name="required_skills"
+value="{{ drive.required_skills or '' }}">
+
+<br><br>
+
+<label>Application Deadline *</label><br>
+<input type="date" name="application_deadline" required
+value="{{ drive.application_deadline.strftime('%Y-%m-%d') if drive.application_deadline else '' }}">
+
+<br><br>
+
+<button type="submit">Save & Resubmit</button>
+<a href="{{ url_for('company_dashboard') }}">Cancel</a>
+
+</form>
+
+{% endblock %}

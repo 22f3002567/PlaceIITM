@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Company Dashboard - PlaceIIT{% endblock %}
+
+{% block content %}
+
+<h2>Company Dashboard</h2>
+<p>Welcome back, {{ company.company_name }}</p>
+
+<hr>
+
+{% if company.approval_status == 'pending' %}
+<p>
+<strong>Pending Approval:</strong>
+Your company registration is under review by the Placement Cell.
+You cannot post drives until approved.
+</p>
+{% elif company.approval_status == 'rejected' %}
+<p>
+<strong>Registration Rejected:</strong>
+Please contact the Placement Cell for more information.
+</p>
+{% endif %}
+
+<hr>
+
+<h3>Statistics</h3>
+
+<p><strong>Total Drives:</strong> {{ total_drives }}</p>
+<p><strong>Active Drives:</strong> {{ active_drives }}</p>
+<p><strong>Total Applicants:</strong> {{ total_apps }}</p>
+<p><strong>Selected:</strong> {{ total_selected }}</p>
+
+<hr>
+
+<h3>Quick Actions</h3>
+
+<p>
+<a href="{{ url_for('company_create_drive') }}">Post New Drive</a>
+</p>
+
+<p>
+<a href="{{ url_for('company_profile') }}">Edit Profile</a>
+</p>
+
+<hr>
+
+
+<h3>My Placement Drives</h3>
+
+<p>
+<a href="{{ url_for('company_create_drive') }}">Post Drive</a>
+</p>
+
+{% if drives %}
+
+<table border="1">
+
+<tr>
+<th>Job Title</th>
+<th>Type</th>
+<th>Salary</th>
+<th>Deadline</th>
+<th>Applicants</th>
+<th>Status</th>
+<th>Actions</th>
+</tr>
+
+{% for drive in drives %}
+
+<tr>
+
+<td>{{ drive.job_title }}</td>
+
+<td>{{ drive.job_type or '-' }}</td>
+
+<td>{{ drive.salary_range or '-' }}</td>
+
+<td>
+{% if drive.application_deadline %}
+{{ drive.application_deadline.strftime('%d %b %Y') }}
+{% else %}
+-
+{% endif %}
+</td>
+
+<td>{{ drive.applications | length }}</td>
+
+<td>{{ drive.status }}</td>
+
+<td>
+
+<a href="{{ url_for('company_drive_applications', drive_id=drive.id) }}">View Applications</a>
+
+{% if drive.status in ['pending','rejected'] %}
+<a href="{{ url_for('company_edit_drive', drive_id=drive.id) }}">Edit</a>
+{% endif %}
+
+{% if drive.status == 'approved' %}
+<form method="POST" action="{{ url_for('company_close_drive', drive_id=drive.id) }}">
+<button type="submit">Close</button>
+</form>
+{% endif %}
+
+{% if drive.status in ['pending','rejected','closed'] %}
+<form method="POST" action="{{ url_for('company_delete_drive', drive_id=drive.id) }}">
+<button type="submit">Delete</button>
+</form>
+{% endif %}
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% else %}
+
+<p>No drives posted yet.</p>
+
+<p>
+<a href="{{ url_for('company_create_drive') }}">Post your first drive</a>
+</p>
+
+{% endif %}
+
+{% endblock %}

@@ -1,3 +1,4 @@
+from datetime import datetime
 from operator import or_
 import os
 
@@ -467,8 +468,171 @@ def admin_applications():
 @app.route('/company/dashboard')
 @company_required
 def company_dashboard():
-    return "This is Company Dashboard - Under Construction"
+    co = current_user.company_profile
+    if not co:
+        flash("Company profile not found. Contact Admin Please..", 'danger')
+        return redirect(url_for('index'))
+    
+    drives = (PlacementDrive.query
+              .filter_by(company_id=co.id)
+              .order_by(PlacementDrive.created_at.desc()).all()
+              )
+    total_drives = len(drives)
+    active_drives = sum(1 for d in drives if d.status == Approved_status)
+    Pending_drives = sum(1 for d in drives if d.status == Pending_status)
+    Closed_drives = sum(1 for d in drives if d.status == Closed_status)
+    total_apps = sum(len(d.applications) for d in drives)
+    total_selected = (Application.query.join(PlacementDrive)
+                      .filter(PlacementDrive.company_id==co.id, Application.status==Selected_status)
+                      .count())
+    
+    return render_template('company_dashboard.html', company=co, total_drives=total_drives, active_drives=active_drives, pending_drives=Pending_drives, closed_drives=Closed_drives, total_apps=total_apps, total_selected=total_selected)
 
+@app.route('/company/drives/create', methods=['GET', 'POST'])
+@company_required
+def company_create_drive():
+    co = current_user.company_profile
+    if not co or not co.is_approved():
+        flash("Hey, your company must be admin-approved before posting drives.. Contact Admin Please..", 'danger')
+        return redirect(url_for('company_dashboard'))
+    
+    if request.method == 'POST':
+        job_title = request.form.get('job_title', '').strip()
+        job_desc = request.form.get('job_desp', '').strip()
+        eligibility = request.form.get('eligibility', '').strip()
+        reg_skills = request.form.get('req_skills', '').strip()
+        salary = request.form.get('salary_range', '').strip()
+        job_type = request.form.get('job_type', '').strip()
+        location = request.form.get('location', '').strip()
+        application_deadline_str = request.form.get('application_deadline', '').strip()
+
+        if not job_title or not job_desc or not application_deadline_str:
+            flash("Job title, description and application deadline are required fields..", 'warning')
+            return render_template('company_create_drive.html', form=request.form)
+        # try:
+        #     application_deadline = datetime.strptime(application_deadline_str, '%Y-%m-%d').date()
+        # except ValueError:
+        #     flash("Invalid date format. Use YYYY-MM-DD.", 'warning')
+        #     return render_template('company_create_drive.html', form=request.form)
+
+        deadline = datetime.strptime(application_deadline_str, '%Y-%m-%d').date()
+        drive = PlacementDrive(
+            company_id=co.id,
+            job_title=job_title,
+            job_desp=job_desc,
+            eligible_criteria=eligibility,
+            req_skills=reg_skills,
+            salary_range=salary,
+            job_type=job_type,
+            location=location,
+            appication_deadline=deadline,
+            status=Pending_status
+        )
+        db.session.add(drive)
+        db.session.commit()
+        flash("Placement drive created successfully! It is pending admin approval.", 'success')
+        return redirect(url_for('company_dashboard'))
+    return render_template('company_create_drive.html', form={})
+
+
+
+
+@app.route('/company/drives/<int:drive_id>/edit', methods=['GET', 'POST'])
+@company_required
+def company_edit_drive(drive_id):
+    co = current_user.company_profile
+    drive = PlacementDrive.query.filter_by(id=drive_id, company_id=co.id).first_or_404()
+
+    if request.method == "POST":
+        deadline_str = request.form.get("application_deadline", '').strip()
+        deadline = datetime.strptime(deadline_str, '%Y-%m-%d').date()\
+        
+        drive.job_title = request.form.get('job_title', '').strip()
+        drive.job_desp = request.form.get('job_descp', '').strip()
+        drive.eligible_criteria = request.form.get('eligible_criteria', '').strip()
+        drive.required_skills = request.form.get('reguired_skills', '').strip()
+        drive.salary_range = request.form.get('salary_range', '').strip()
+        drive.job_type = request.form.get('job_type', '').strip()
+        drive.location = request.form.get('loaction', '').strip()
+        drive.application_deadline = deadline
+        drive.status = Pending_status
+        db.session.commit()
+        flash("Drive updated and re-submitted for admin approval..", 'success')
+        return redirect(url_for('company_dashboard'))
+    return render_template("Company_edit_drive.html", drive = drive, form={})
+
+@app.route('/company/drive/<int:drive_id>/close', methods=["POST"])
+@company_required
+def company_close_drive(drive_id):
+    co = current_user.company_profile
+    drive = PlacementDrive.query.filter_by(id= drive_id, company_id= co.id)
+    drive.status = Closed_status
+    db.session.commit()
+    flash("Drive Closed..", 'info')
+    return redirect(url_for("company_dashboard"))
+
+
+
+@app.route('/company/drives/<int:drive_id>/delete', methods=['POST'])
+@company_required
+def company_delete_drive(drive_id):
+    co    = current_user.company_profile
+    drive = PlacementDrive.query.filter_by(id=drive_id, company_id=co.id).first_or_404()
+    db.session.delete(drive)
+    db.session.commit()
+    flash('Drive deleted.', 'info')
+    return redirect(url_for('company_dashboard'))
+
+
+@app.route('/company/drives/<int:drive_id>/applications')
+@company_required
+def company_drive_applications(drive_id):
+    co     = current_user.company_profile
+    drive  = PlacementDrive.query.filter_by(id=drive_id, company_id=co.id).first_or_404()
+    status = request.args.get('status', '').strip()
+
+    query = Application.query.filter_by(drive_id=drive_id).join(Student)
+    if status:
+        query = query.filter(Application.status == status)
+    applications = query.order_by(Application.application_date.desc()).all()
+
+    return render_template('company_applications.html',
+        drive=drive, applications=applications,
+        status_filter=status, app_statuses=App_statuses)
+
+
+@app.route('/company/applications/<int:app_id>/update', methods=['POST'])
+@company_required
+def company_update_application(app_id):
+    application = Application.query.get_or_404(app_id)
+    application.status= request.form.get('status', Applied_status)
+    application.notes = request.form.get('notes', '').strip()
+    db.session.commit()
+    flash('Application status updated.', 'success')
+    return redirect(url_for('company_drive_applications', drive_id=application.drive_id))
+
+
+@app.route('/company/profile', methods=['GET', 'POST'])
+@company_required
+def company_profile():
+    co = current_user.company_profile
+    if request.method == 'POST':
+        co.industry = request.form.get('industry', '').strip()
+        co.location = request.form.get('location', '').strip()
+        co.hr_name = request.form.get('hr_name', '').strip()
+        co.hr_contact = request.form.get('hr_contact', '').strip()
+        co.website = request.form.get('website', '').strip()
+        co.description= request.form.get('description', '').strip()
+        db.session.commit()
+        flash('Profile updated.', 'success')
+        return redirect(url_for('company_profile'))
+    return render_template('company_profile.html', company=co, industries=Industries)
+
+
+        
+        
+        
+        
 @app.route('/student/dashboard')
 @student_required
 def student_dashboard():

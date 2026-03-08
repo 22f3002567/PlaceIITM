@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Applicants- {{ drive.job_title }} - PlaceIIT{% endblock %}
+
+{% block content %}
+
+<p>
+<a href="{{ url_for('company_dashboard') }}">Back to Dashboard</a>
+</p>
+
+<h2>{{ drive.job_title }}</h2>
+
+<p>
+Applicants for this drive -
+{% if drive.application_deadline %}
+Deadline: {{ drive.application_deadline.strftime('%d %b %Y') }}
+{% endif %}
+</p>
+
+<hr>
+
+<h3>Filter Applications</h3>
+
+<form method="GET" action="{{ url_for('company_drive_applications', drive_id=drive.id) }}">
+
+<label>Status</label><br>
+<select name="status">
+<option value="">All</option>
+{% for s in app_statuses %}
+<option value="{{ s }}" {% if status_filter == s %}selected{% endif %}>
+{{ s }}
+</option>
+{% endfor %}
+</select>
+
+<br><br>
+
+<button type="submit">Filter</button>
+<a href="{{ url_for('company_drive_applications', drive_id=drive.id) }}">Clear</a>
+
+</form>
+
+<hr>
+
+{% if applications %}
+
+<table border="1" cellpadding="6">
+
+<tr>
+<th>Name</th>
+<th>Roll No.</th>
+<th>CGPA</th>
+<th>Skills</th>
+<th>Resume</th>
+<th>Applied On</th>
+<th>Status</th>
+<th>Update</th>
+</tr>
+
+{% for app in applications %}
+
+<tr>
+
+<td>{{ app.student.name }}</td>
+
+<td>{{ app.student.roll_number or '-' }}</td>
+
+<td>{{ app.student.cgpa or '-' }}</td>
+
+<td>{{ app.student.skills or '-' }}</td>
+
+<td>
+{% if app.student.resume_filename %}
+<a href="{{ url_for('serve_resume', filename=app.student.resume_filename) }}" target="_blank">
+View PDF
+</a>
+{% else %}
+None
+{% endif %}
+</td>
+
+<td>{{ app.application_date.strftime('%d %b %Y') }}</td>
+
+<td>{{ app.status }}</td>
+
+<td>
+
+<form method="POST" action="{{ url_for('company_update_application', app_id=app.id) }}">
+
+<select name="status">
+{% for s in app_statuses %}
+<option value="{{ s }}" {% if app.status == s %}selected{% endif %}>
+{{ s }}
+</option>
+{% endfor %}
+</select>
+
+<button type="submit">Save</button>
+
+</form>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% else %}
+
+<p>No applicants yet for this drive.</p>
+
+{% endif %}
+
+{% endblock %}
