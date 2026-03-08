@@ -9,6 +9,16 @@ Admin_role = 'admin'
 Company_role = 'company'
 Student_role = 'student'
 
+Pending_status = "pending"
+Approved_status = "approved"
+Rejected_status = "rejected"
+Closed_status = "closed"
+
+Applied_status = "Applied"
+Shortlisted_status = "Shortlisted"
+Selected_status = "Selected"
+Rejected_status = "Rejected"
+
 class User(UserMixin, db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
@@ -41,6 +51,10 @@ class Company(db.Model):
     approval_status = db.Column(db.String(30), default='pending', nullable=False)
     registered_at = db.Column(db.DateTime, default= datetime.utcnow)
     updated_at = db.Column(db.DateTime, default= datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def is_approved(self):
+        return self.approval_status == Approved_status
+
 
 class Student(db.Model):
     __tablename__ = "students"
@@ -74,6 +88,13 @@ class PlacementDrive(db.Model):
     status = db.Column(db.String(30), default='peniding', nullable=False)
     created_at = db.Column(db.DateTime, default= datetime.utcnow)
     updated_at = db.Column(db.DateTime, default= datetime.utcnow, onupdate=datetime.utcnow)
+
+    def is_active(self):
+        return (self.status == Approved_status and 
+                self.appication_deadline and 
+                self.appication_deadline >= datetime.date.today()
+                )
+
 
 class Application(db.Model):
     __tablename__ = "applications"
