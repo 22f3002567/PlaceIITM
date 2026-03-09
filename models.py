@@ -19,6 +19,9 @@ Shortlisted_status = "Shortlisted"
 Selected_status = "Selected"
 Rejected_status = "Rejected"
 
+App_statuses = [Applied_status, Shortlisted_status, Selected_status, Rejected_status]
+
+
 class User(UserMixin, db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
@@ -36,6 +39,13 @@ class User(UserMixin, db.Model):
         return self.role == Company_role
     def is_student(self):
         return self.role == Student_role
+    
+    company_profile = db.relationship("Company", backref=db.backref('user', uselist=False),
+                                      uselist=False, cascade = "all, delete-orphan")
+    student_profile = db.relationship('Student', backref=db.backref('user', uselist=False),uselist=False, cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f'<User {self.username} - {self.role}>'
 
 class Company(db.Model):
     __tablename__ = "companies"
@@ -52,12 +62,18 @@ class Company(db.Model):
     registered_at = db.Column(db.DateTime, default= datetime.utcnow)
     updated_at = db.Column(db.DateTime, default= datetime.utcnow, onupdate=datetime.utcnow)
     
+    drives = db.relationship("PlacementDrive", backref="company", lazy=True, cascade="all, delete-orphan")
+
     def is_approved(self):
         return self.approval_status == Approved_status
+    
+    def __repr__(self):
+        return f"<Company {self.company_name} - {self.approval_status}>"
 
 
 class Student(db.Model):
     __tablename__ = "students"
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, unique=True)
     stu_name = db.Column(db.String(100), nullable=False)
@@ -68,10 +84,21 @@ class Student(db.Model):
     degree = db.Column(db.String(60))
     grad_year = db.Column(db.Integer)
     cgpa = db.Column(db.Float)
-    skilss = db.Column(db.Text)
+    skills = db.Column(db.Text)
+    bio = db.Column(db.Text)
     resume_filename = db.Column(db.String(200))
     registered_at = db.Column(db.DateTime, default= datetime.utcnow)
     updated_at = db.Column(db.DateTime, default= datetime.utcnow, onupdate=datetime.utcnow)
+    
+    applications = db.relationship("Application", backref='student', lazy=True, cascade='all, delete-orphan')
+
+    @property
+    def profile_completeness(self):
+        checks = [(self.name, 15), (self.phone, 10), (self.roll_no, 10), (self.department, 10), (self.degree, 10), (self.grad_year, 5), (self.cgpa, 10), (self.skills, 15), (self.bio, 5), (self.resume_filename, 10), ]
+        return sum(pts for val, pts in checks if val)
+    
+    def __repr__(self):
+        return f'<Student {self.stu_name}- {self.roll_no}>'
 
 class PlacementDrive(db.Model):
     __tablename__ = "placement_drives"
@@ -89,11 +116,17 @@ class PlacementDrive(db.Model):
     created_at = db.Column(db.DateTime, default= datetime.utcnow)
     updated_at = db.Column(db.DateTime, default= datetime.utcnow, onupdate=datetime.utcnow)
 
-    def is_active(self):
+    def is_open(self):
         return (self.status == Approved_status and 
                 self.appication_deadline and 
                 self.appication_deadline >= datetime.date.today()
                 )
+    
+    applications = db.relationship("Application", backref='drive', lazy=True, cascade='all, delete-orphan')
+
+    def __repr__(self):
+        return f'<Drive {self.job_title} @ {self.company.company_name} - {self.status}>'
+
 
 
 class Application(db.Model):
@@ -104,8 +137,37 @@ class Application(db.Model):
     status = db.Column(db.String(30), default='pending', nullable=False)
     applied_at = db.Column(db.DateTime, default= datetime.utcnow)
     notes = db.Column(db.Text)
-    
 
+    __table_args__ = (
+        db.UniqueConstraint("student_id", "drive_id", name= 'uix_student_drive'),
+    )
     
+    def __repr__(self):
+        return f"<Application Student:- {self.student_id} Drive:- {self.drive_id} :-: {self.status}>"
 
-    
+
+Departments = ["Data Science",
+               "Electronics",
+               "Aironotics",
+               "Computer Science & Engineering",
+               "Mathematics and Computing",
+               "Civil Engineering",
+               "Other"]
+
+Degrees = ["Foundation", "Diploma", "B.Sc", "BS", "B-Tech" ]
+
+Industries = ["Technology and Software Industry",
+              "Finance and FinTech",
+              "Healthcare & Bioinformatics",
+              "E-commerce and Internet Platforms",
+              "Consulting & Analytics Firms",
+              "Automotive and Robotics",
+              "Government, Defense and Space",
+              "Other"
+              ]
+
+Job_types = ["Full TIme",
+             "Part Time",
+             'Internships',
+             "Contract",
+             "Internships + PPO"]
