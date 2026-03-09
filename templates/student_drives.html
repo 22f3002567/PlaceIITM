@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Browse Drives- PlaceIIT{% endblock %}
+
+{% block content %}
+
+<h2>Browse Placement Drives</h2>
+<p>All currently open drives. Apply before the deadline.</p>
+
+<hr>
+
+<h3>Search Drives</h3>
+
+<form method="GET" action="{{ url_for('student_drives') }}">
+
+<label>Search</label><br>
+<input type="text" name="search"
+placeholder="Company, role or skills…"
+value="{{ search }}">
+
+<br><br>
+
+<button type="submit">Search</button>
+<a href="{{ url_for('student_drives') }}">Clear</a>
+
+</form>
+
+<hr>
+
+{% if drives %}
+
+{% for drive in drives %}
+
+<hr>
+
+<h3>{{ drive.job_title }}</h3>
+
+<p><strong>Company:</strong> {{ drive.company.company_name }}</p>
+
+{% if drive.job_type %}
+<p><strong>Job Type:</strong> {{ drive.job_type }}</p>
+{% endif %}
+
+{% if drive.salary_range %}
+<p><strong>Salary:</strong> {{ drive.salary_range }}</p>
+{% endif %}
+
+{% if drive.location %}
+<p><strong>Location:</strong> {{ drive.location }}</p>
+{% endif %}
+
+{% if drive.application_deadline %}
+<p>
+<strong>Deadline:</strong>
+{% if drive.days_left == 0 %}
+Closes today!
+{% elif drive.days_left <= 3 %}
+{{ drive.days_left }} day(s) left
+{% else %}
+{{ drive.application_deadline.strftime('%d %b %Y') }}
+{% endif %}
+</p>
+{% endif %}
+
+{% if drive.required_skills %}
+<p><strong>Required Skills:</strong> {{ drive.required_skills }}</p>
+{% endif %}
+
+{% if drive.id in applied_ids %}
+
+<p><strong>Applied</strong></p>
+
+{% else %}
+
+<form method="POST" action="{{ url_for('student_apply', drive_id=drive.id) }}">
+<button type="submit">Apply Now</button>
+</form>
+
+{% endif %}
+
+{% endfor %}
+
+{% else %}
+
+<p>No open drives found.</p>
+
+{% endif %}
+
+{% endblock %}

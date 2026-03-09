@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Placement History - PlaceIIT{% endblock %}
+
+{% block content %}
+
+<h2>Placement History</h2>
+<p>Your final outcomes - selected and rejected applications.</p>
+
+<hr>
+
+{% if history %}
+
+<table border="1" cellpadding="6">
+
+<tr>
+<th>Company</th>
+<th>Role</th>
+<th>Type</th>
+<th>Salary</th>
+<th>Applied On</th>
+<th>Outcome</th>
+</tr>
+
+{% for app in history %}
+
+<tr>
+
+<td>{{ app.drive.company.company_name }}</td>
+
+<td>{{ app.drive.job_title }}</td>
+
+<td>{{ app.drive.job_type or '-' }}</td>
+
+<td>{{ app.drive.salary_range or '-' }}</td>
+
+<td>{{ app.application_date.strftime('%d %b %Y') }}</td>
+
+<td>
+{% if app.status == 'Selected' %}
+Selected
+{% else %}
+Rejected
+{% endif %}
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% else %}
+
+<p>No completed applications yet.</p>
+
+<p>
+<a href="{{ url_for('student_drives') }}">Browse Drives</a>
+</p>
+
+{% endif %}
+
+{% endblock %}

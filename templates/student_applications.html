@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}My Applications - PlaceIIT{% endblock %}
+
+{% block content %}
+
+<h2>My Applications</h2>
+<p>Track the status of all your placement applications.</p>
+
+<hr>
+
+<h3>Filter Applications</h3>
+
+<form method="GET" action="{{ url_for('student_applications') }}">
+
+<label>Status</label><br>
+<select name="status">
+<option value="">All</option>
+{% for s in app_statuses %}
+<option value="{{ s }}" {% if status_filter == s %}selected{% endif %}>
+{{ s }}
+</option>
+{% endfor %}
+</select>
+
+<br><br>
+
+<button type="submit">Filter</button>
+<a href="{{ url_for('student_applications') }}">Clear</a>
+
+</form>
+
+<hr>
+
+{% if applications %}
+
+{% for app in applications %}
+
+<hr>
+
+<h3>{{ app.drive.job_title }}</h3>
+
+<p>
+<strong>Company:</strong>
+{{ app.drive.company.company_name }}
+{% if app.drive.location %} - {{ app.drive.location }}{% endif %}
+</p>
+
+<p>
+<strong>Applied On:</strong>
+{{ app.application_date.strftime('%d %b %Y') }}
+</p>
+
+{% if app.status == 'Rejected' %}
+
+<p><strong>Status:</strong> Rejected</p>
+
+{% else %}
+
+<p><strong>Status:</strong> {{ app.status }}</p>
+
+<p>
+Application Progress:
+Applied →
+Shortlisted →
+Selected
+</p>
+
+{% endif %}
+
+{% if app.notes %}
+<p>
+<strong>Note from company:</strong>
+{{ app.notes }}
+</p>
+{% endif %}
+
+{% endfor %}
+
+{% else %}
+
+<p>No applications yet.</p>
+
+<p>
+<a href="{{ url_for('student_drives') }}">Browse Drives</a>
+</p>
+
+{% endif %}
+
+{% endblock %}

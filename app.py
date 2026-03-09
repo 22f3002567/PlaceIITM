@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from operator import or_
 import os
 
@@ -630,13 +630,134 @@ def company_profile():
 
 
         
-        
-        
-        
+
 @app.route('/student/dashboard')
 @student_required
 def student_dashboard():
-    return "This is Student Dashboard - Under Construction"
+    student = current_user.student_profile
+    if not student:
+        flash('Student profile not found.', 'danger')
+        return redirect(url_for('index'))
+
+    today = date.today()
+
+    # Drives student hasn't applied to yet, that are open
+    applied_drive_ids = [a.drive_id for a in student.applications]
+    available_drives  = (PlacementDrive.query
+                         .filter_by(status=Approved_status)
+                         .filter(PlacementDrive.application_deadline >= today)
+                         .filter(PlacementDrive.id.notin_(applied_drive_ids) if applied_drive_ids else True)
+                         .order_by(PlacementDrive.application_deadline.asc())
+                         .all())
+
+    recent_apps= (Application.query.filter_by(student_id=student.id)
+                      .order_by(Application.application_date.desc()).limit(5).all())
+    total_apps= Application.query.filter_by(student_id=student.id).count()
+    applied_count= Application.query.filter_by(student_id=student.id, status=Applied_status).count()
+    shortlisted_c = Application.query.filter_by(student_id=student.id, status=Shortlisted_status).count()
+    selected_c = Application.query.filter_by(student_id=student.id, status=Selected_status).count()
+
+    return render_template('student_dashboard.html',
+        student=student,
+        available_drives=available_drives,
+        recent_apps=recent_apps,
+        total_apps=total_apps,
+        applied_count=applied_count,
+        shortlisted_c=shortlisted_c,
+        selected_c=selected_c
+    )
+
+
+@app.route('/student/drives')
+@student_required
+def student_drives():
+    student = current_user.student_profile
+    search  = request.args.get('search', '').strip()
+    today   = date.today()
+
+    query = (PlacementDrive.query.join(Company)
+             .filter(PlacementDrive.status == Approved_status)
+             .filter(PlacementDrive.application_deadline >= today))
+    if search:
+        query = query.filter(or_(
+            PlacementDrive.job_title.ilike(f'%{search}%'),
+            Company.company_name.ilike(f'%{search}%'),
+            PlacementDrive.required_skills.ilike(f'%{search}%'),
+        ))
+    drives = query.order_by(PlacementDrive.application_deadline.asc()).all()
+
+    applied_ids = {a.drive_id for a in student.applications}
+    for d in drives:
+        if d.application_deadline:
+            d.days_left = (d.application_deadline - today).days
+        else:
+            d.days_left = 999
+
+    return render_template('student_drives.html',
+        drives=drives, search=search, applied_ids=applied_ids)
+
+
+@app.route('/student/drives/<int:drive_id>/apply', methods=['POST'])
+@student_required
+def student_apply(drive_id):
+    student = current_user.student_profile
+    application = Application(student_id=student.id, drive_id=drive_id)
+    db.session.add(application)
+    db.session.commit()
+    flash('Application submitted successfully!', 'success')
+
+
+
+@app.route('/student/applications')
+@student_required
+def student_applications():
+    student = current_user.student_profile
+    status  = request.args.get('status', '').strip()
+
+    query = Application.query.filter_by(student_id=student.id)
+    if status:
+        query = query.filter_by(status=status)
+    applications = query.order_by(Application.application_date.desc()).all()
+
+    return render_template('student_applications.html',
+        applications=applications, status_filter=status)
+
+
+@app.route('/student/history')
+@student_required
+def student_history():
+    student = current_user.student_profile
+    history = (Application.query
+               .filter_by(student_id=student.id)
+               .filter(Application.status.in_([Selected_status]))
+               .order_by(Application.application_date.desc()).all())
+    return render_template('student_history.html', history=history)
+
+
+@app.route('/student/profile', methods=['GET', 'POST'])
+@student_required
+def student_profile():
+    student = current_user.student_profile
+    if request.method == 'POST':
+        grad_yr  = request.form.get('graduation_year', '').strip()
+        cgpa_str = request.form.get('cgpa', '').strip()
+
+
+        student.name = request.form.get('name', '').strip()
+        student.phone = request.form.get('phone', '').strip()
+        student.department = request.form.get('department', '').strip()
+        student.degree = request.form.get('degree', '').strip()
+        student.graduation_year = int(grad_yr) if grad_yr.isdigit() else None
+        student.cgpa = float(cgpa_str) if cgpa_str else None
+        student.skills = request.form.get('skills', '').strip()
+        student.bio = request.form.get('bio', '').strip()
+        db.session.commit()
+        flash('Profile updated!', 'success')
+        return redirect(url_for('student_profile'))
+
+    return render_template('student_profile.html',
+        student=student)
+
 
 
 if __name__ == '__main__':

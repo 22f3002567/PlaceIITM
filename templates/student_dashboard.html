@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Student Dashboard - PlaceIIT{% endblock %}
+
+{% block content %}
+
+<h2>Dashboard</h2>
+<p>Welcome back, {{ student.name }}</p>
+
+<hr>
+
+{% set pc = student.profile_completeness %}
+{% if pc < 100 %}
+
+<p>
+<strong>Profile {{ pc }}% complete.</strong>
+A complete profile improves your chances.
+<a href="{{ url_for('student_profile') }}">Complete now</a>
+</p>
+
+<p>Profile Completion: {{ pc }}%</p>
+
+{% endif %}
+
+<hr>
+
+<h3>Statistics</h3>
+
+<p>Applied: {{ total_apps }}</p>
+<p>Shortlisted: {{ shortlisted_c }}</p>
+<p>Selected: {{ selected_c }}</p>
+<p>Open Drives: {{ available_drives | length }}</p>
+
+<hr>
+
+{% if app_chart %}
+
+<h3>My Application Summary</h3>
+
+<img src="data:image/png;base64,{{ app_chart }}" alt="Application Chart">
+
+<hr>
+
+{% endif %}
+
+<h3>Open Drives</h3>
+
+{% if available_drives %}
+
+<table border="1" cellpadding="6">
+
+<tr>
+<th>Company</th>
+<th>Role</th>
+<th>Type</th>
+<th>Salary</th>
+<th>Deadline</th>
+<th>Apply</th>
+</tr>
+
+{% for drive in available_drives[:5] %}
+
+<tr>
+
+<td>{{ drive.company.company_name }}</td>
+
+<td>{{ drive.job_title }}</td>
+
+<td>{{ drive.job_type or '-' }}</td>
+
+<td>{{ drive.salary_range or '-' }}</td>
+
+<td>
+{% if drive.application_deadline %}
+{{ drive.application_deadline.strftime('%d %b %Y') }}
+{% else %}
+-
+{% endif %}
+</td>
+
+<td>
+<form method="POST" action="{{ url_for('student_apply', drive_id=drive.id) }}">
+<button type="submit">Apply</button>
+</form>
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+<p>
+<a href="{{ url_for('student_drives') }}">View All Drives</a>
+</p>
+
+{% else %}
+
+<p>No open drives at the moment.</p>
+
+{% endif %}
+
+<hr>
+
+<h3>Recent Applications</h3>
+
+{% if recent_apps %}
+
+<table border="1" cellpadding="6">
+
+<tr>
+<th>Company</th>
+<th>Role</th>
+<th>Applied On</th>
+<th>Status</th>
+</tr>
+
+{% for app in recent_apps %}
+
+<tr>
+
+<td>{{ app.drive.company.company_name }}</td>
+
+<td>{{ app.drive.job_title }}</td>
+
+<td>{{ app.application_date.strftime('%d %b %Y') }}</td>
+
+<td>{{ app.status }}</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+<p>
+<a href="{{ url_for('student_applications') }}">View All Applications</a>
+</p>
+
+{% else %}
+
+<p>
+No applications yet.
+<a href="{{ url_for('student_drives') }}">Browse drives</a>
+</p>
+
+{% endif %}
+
+{% endblock %}
