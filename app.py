@@ -5,14 +5,17 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, flash, abort
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_sqlalchemy import SQLAlchemy
-from models import (db, User, Company, Student, PlacementDrive, Application, Admin_role, Company_role, Student_role, Pending_status, Approved_status, Rejected_status, Closed_status, Applied_status, Shortlisted_status, Selected_status)
+from models import (db,
+                     User, Company, Student, PlacementDrive, Application,
+                     Admin_role, Company_role, Student_role, Pending_status, Approved_status, Rejected_status, Closed_status, 
+                     Applied_status, Shortlisted_status, Selected_status, Rejected_status,
+                     App_statuses, Departments, Degrees, Industries, Job_types )
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
 
 app = Flask(__name__)
 
-
-app.config['SECRET_KEY'] = '123456789'
+app.config['SECRET_KEY'] = 'placeiitm_secret_sidd'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///placeiitm.db' 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = os.path.join(
@@ -46,7 +49,7 @@ def init_db():
         
         if not User.query.filter_by(role=Admin_role).first():
             print("No Admin found. Initializing default Admin account...")
-            hashed_pw = generate_password_hash('Siddharth@123') 
+            hashed_pw = generate_password_hash('Siddharth@300', method='pbkdf2:sha256', salt_length=8) 
             
             admin_user = User(
                 username='siddharth_admin',
@@ -57,7 +60,7 @@ def init_db():
             )
             db.session.add(admin_user)
             db.session.commit()
-            print("Admin created, siddharth@placeiitm.ac.in/Siddharth@123")
+            print("Admin created, siddharth@placeiitm.ac.in/Siddharth@300")
         else:
             print("Admin account already exists. Skipping initialization.")
 
@@ -110,6 +113,9 @@ def index():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        return redirect_dashboard()
+    
     if request.method == 'POST':
         email = request.form.get('email', '').strip().lower()
         passwd = request.form.get('password', '')
@@ -126,16 +132,31 @@ def login():
             return redirect(url_for('login'))
         
         if user.role != role:
-            flash(f"Hey Seeker, You selected {role} but your account is {user.role}. Please select the correct role.", 'warning')
+            flash(f"Hey Seeker, You selected {role} but your account is {user.role.title()}. Please select the correct role.", 'warning')
             return redirect(url_for('login'))
+
+        if not user.is_active:
+            flash("Hey sir, Your account is deactivated, Please contact admin..", 'danger')
+            return redirect(url_for('login'))    
+        
         login_user(user)
-        flash(f"Welcome back, {user.username}! You have successfully logged in as {user.role}.", 'success')
+        flash(f"Welcome back, {user.username}! You have successfully logged in as {user.role}..", 'success')
         return redirect_dashboard()
     return render_template('login.html')
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    flash("Sir, You have been logged out..", 'info')
+    return redirect(url_for('index'))
 
 
 @app.route('/register/company', methods=['GET', 'POST'])
 def reg_company():
+    if current_user.is_authenticated:
+        return redirect_dashboard()
+    
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         email = request.form.get('email', '').strip().lower()
@@ -151,12 +172,12 @@ def reg_company():
 
         if not all([username, email, passwd, confirm_passwd, company_name]):
             flash("Please fill in all required fields (*).", 'warning')
-            return render_template('reg_company.html', form=request.form, industries="Industries")
+            return render_template('reg_company.html', form=request.form, industries=Industries)
         
 
         if passwd != confirm_passwd:
             flash("Passwords do not match..", 'warning')
-            return render_template('reg_company.html', form=request.form, industries="Industries")
+            return render_template('reg_company.html', form=request.form, industries=Industries)
 
         user = User(
             username=username,
@@ -183,10 +204,13 @@ def reg_company():
         return redirect(url_for('login'))
         
         
-    return render_template('reg_company.html', form={}, industries="Industries")
+    return render_template('reg_company.html', form={}, industries=Industries)
 
 @app.route('/register/student', methods=['GET', 'POST'])
 def reg_student():
+    if current_user.is_authenticated:
+        return redirect_dashboard()
+    
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         email = request.form.get('email', '').strip().lower()

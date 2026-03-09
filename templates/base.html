@@ -1,30 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}PlaceIITM{% endblock %}</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>{% block title %}PlaceIIT{% endblock %}</title>
+
+{% block extra_head %}{% endblock %}
+
 </head>
+
 <body>
-    <nav>
-        <div>
-            <a href="/">PlaceIITM</a>
-            <button class="navbar-toggler" type="button">Menu</button>
-            <div>
-                <ul>
-                    <li><a href="/login">Login</a></li>
-                    <li><a href="/reg_student">Register as Student</a></li>
-                    <li><a href="/reg_company">Register as Company</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-    <main>
-        {% block content %}{% endblock %}
-    </main>
-    <footer>
-        PlaceIITM - Campus Placement Portal &copy; Siddharth Sahu 2026. MAD1 Project.
-    </footer>
-    
+
+<nav>
+
+<a href="{{ url_for('index') }}">PlaceIIT</a>
+
+<ul>
+
+{% if current_user.is_authenticated %}
+
+    {% if current_user.is_admin() %}
+        <li><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+        <li><a href="{{ url_for('admin_companies') }}">Companies</a></li>
+        <li><a href="{{ url_for('admin_students') }}">Students</a></li>
+        <li><a href="{{ url_for('admin_drives') }}">Drives</a></li>
+        <li><a href="{{ url_for('admin_applications') }}">Applications</a></li>
+
+    {% elif current_user.is_company() %}
+        <li><a href="{{ url_for('company_dashboard') }}">Dashboard</a></li>
+        <li><a href="{{ url_for('company_create_drive') }}">Post Drive</a></li>
+        <li><a href="{{ url_for('company_profile') }}">Profile</a></li>
+
+    {% else %}
+        <li><a href="{{ url_for('student_dashboard') }}">Dashboard</a></li>
+        <li><a href="{{ url_for('student_drives') }}">Browse Drives</a></li>
+        <li><a href="{{ url_for('student_applications') }}">My Applications</a></li>
+        <li><a href="{{ url_for('student_history') }}">History</a></li>
+        <li><a href="{{ url_for('student_profile') }}">Profile</a></li>
+    {% endif %}
+
+    <li>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </li>
+
+{% else %}
+
+    <li><a href="{{ url_for('login') }}">Login</a></li>
+    <li><a href="{{ url_for('register_student') }}">Register Student</a></li>
+    <li><a href="{{ url_for('register_company') }}">Register Company</a></li>
+
+{% endif %}
+
+</ul>
+
+</nav>
+
+<hr>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+        <p><strong>{{ category }}:</strong> {{ message }}</p>
+    {% endfor %}
+{% endwith %}
+
+<hr>
+
+<main>
+
+{% block content %}{% endblock %}
+
+</main>
+
+<hr>
+
+<footer>
+
+<p>
+PlaceIITM - Campus Placement Portal &copy; Siddharth Sahu 2026. MAD1 Project.
+</p>
+
+</footer>
+
+{% block extra_js %}{% endblock %}
+
 </body>
 </html>
