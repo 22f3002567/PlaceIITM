@@ -1,12 +1,127 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
-</head>
-<body>
-    <h1>Welcome to PlaceIITM</h1>
-    <p>This is Siddharth</p>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}PlaceIITM - Campus Placement Portal{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="p-5 mb-4 bg-primary text-white rounded-3">
+    <div class="container-fluid py-3 text-center">
+        <h1 class="fw-bold display-5">
+            <i class="bi bi-mortarboard-fill me-2"></i>PlaceIIT
+        </h1>
+        <p class="col-md-8 fs-5 mx-auto mt-2 mb-4 opacity-75">
+            Where Talent Meets Opportunity - the official campus placement portal
+            connecting IIT students with top recruiters.
+        </p>
+        {% if current_user.is_authenticated %}
+            {% if current_user.is_admin() %}
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-warning btn-lg fw-bold me-2">
+                    <i class="bi bi-grid me-1"></i>Go to Dashboard
+                </a>
+            {% elif current_user.is_company() %}
+                <a href="{{ url_for('company_dashboard') }}" class="btn btn-warning btn-lg fw-bold me-2">
+                    <i class="bi bi-grid me-1"></i>Go to Dashboard
+                </a>
+            {% else %}
+                <a href="{{ url_for('student_dashboard') }}" class="btn btn-warning btn-lg fw-bold me-2">
+                    <i class="bi bi-grid me-1"></i>Go to Dashboard
+                </a>
+            {% endif %}
+        {% else %}
+            <a href="{{ url_for('reg_student') }}" class="btn btn-warning btn-lg fw-bold me-2">
+                <i class="bi bi-mortarboard me-1"></i>Register as Student
+            </a>
+            <a href="{{ url_for('reg_company') }}" class="btn btn-outline-light btn-lg">
+                <i class="bi bi-building me-1"></i>Register Company
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Features -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body p-4">
+                <i class="bi bi-mortarboard-fill fs-2 text-primary mb-3 d-block"></i>
+                <h5 class="fw-bold">For Students</h5>
+                <p class="text-muted small">
+                    Build your placement profile, upload your resume, browse open drives
+                    and track your application status in real time.
+                </p>
+                <a href="{{ url_for('reg_student') }}" class="btn btn-sm btn-outline-primary">
+                    Register Now
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body p-4">
+                <i class="bi bi-building-fill fs-2 text-success mb-3 d-block"></i>
+                <h5 class="fw-bold">For Companies</h5>
+                <p class="text-muted small">
+                    Register your company, post placement drives, review applicants
+                    and manage your entire hiring pipeline from one place.
+                </p>
+                <a href="{{ url_for('reg_company') }}" class="btn btn-sm btn-outline-success">
+                    Register Company
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body p-4">
+                <i class="bi bi-shield-lock-fill fs-2 text-warning mb-3 d-block"></i>
+                <h5 class="fw-bold">For Admin</h5>
+                <p class="text-muted small">
+                    Approve companies and drives, manage students, monitor applications
+                    and view analytics across the whole portal.
+                </p>
+                <a href="{{ url_for('login') }}" class="btn btn-sm btn-outline-warning">
+                    Admin Login
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How it works -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-4">
+        <h5 class="fw-bold mb-3">How It Works</h5>
+        <div class="row g-3 text-center">
+            <div class="col-md-3">
+                <div class="bg-light rounded-3 p-3">
+                    <i class="bi bi-person-plus-fill fs-3 text-primary mb-2 d-block"></i>
+                    <h6 class="fw-semibold mb-1">1. Register</h6>
+                    <p class="text-muted small mb-0">Students and companies create accounts</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="bg-light rounded-3 p-3">
+                    <i class="bi bi-check-circle-fill fs-3 text-success mb-2 d-block"></i>
+                    <h6 class="fw-semibold mb-1">2. Approve</h6>
+                    <p class="text-muted small mb-0">Admin reviews and approves companies</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="bg-light rounded-3 p-3">
+                    <i class="bi bi-briefcase-fill fs-3 text-info mb-2 d-block"></i>
+                    <h6 class="fw-semibold mb-1">3. Post Drive</h6>
+                    <p class="text-muted small mb-0">Companies post placement drives</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="bg-light rounded-3 p-3">
+                    <i class="bi bi-send-fill fs-3 text-warning mb-2 d-block"></i>
+                    <h6 class="fw-semibold mb-1">4. Apply</h6>
+                    <p class="text-muted small mb-0">Students apply and track their status</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,87 +1,93 @@
 {% extends "base.html" %}
-{% block title %}Edit Student - PlaceIITM{% endblock %}
+{% block title %}Edit Student — PlaceIIT{% endblock %}
 
 {% block content %}
 
-<p>
-<a href="{{ url_for('admin_students') }}">Back to Students</a>
-</p>
+<div class="mb-4">
+    <a href="{{ url_for('admin_students') }}" class="text-decoration-none text-muted small">
+        <i class="bi bi-arrow-left me-1"></i>Back to Students
+    </a>
+    <h2 class="fw-bold mt-1">Edit Student</h2>
+    <p class="text-muted mb-0">{{ student.stu_name }} — {{ student.roll_no }}</p>
+</div>
 
-<h2>Edit Student</h2>
-<p>{{ student.name }} — {{ student.roll_number }}</p>
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('admin_edit_student', st_id=student.id) }}">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Full Name</label>
+                            <input type="text" class="form-control" name="stu_name"
+                                   value="{{ student.stu_name }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Phone</label>
+                            <input type="text" class="form-control" name="phone"
+                                   value="{{ student.phone or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Department</label>
+                            <select name="department" class="form-select">
+                                <option value="">— Select —</option>
+                                {% for d in departments %}
+                                    <option value="{{ d }}"
+                                        {% if student.department == d %}selected{% endif %}>
+                                        {{ d }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Degree</label>
+                            <select name="degree" class="form-select">
+                                <option value="">— Select —</option>
+                                {% for d in degrees %}
+                                    <option value="{{ d }}"
+                                        {% if student.degree == d %}selected{% endif %}>
+                                        {{ d }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Grad. Year</label>
+                            <input type="number" class="form-control" name="grad_year"
+                                   value="{{ student.grad_year or '' }}"
+                                   min="2020" max="2035">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">CGPA</label>
+                            <input type="number" class="form-control" name="cgpa"
+                                   value="{{ student.cgpa or '' }}"
+                                   step="0.01" min="0" max="10">
+                        </div>
+                        <div class="col-md-9">
+                            <label class="form-label fw-semibold">Skills</label>
+                            <input type="text" class="form-control" name="skills"
+                                   value="{{ student.skills or '' }}"
+                                   placeholder="Comma-separated">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Bio</label>
+                            <textarea class="form-control" name="bio" rows="2"
+                                      placeholder="Short bio…">{{ student.bio or '' }}</textarea>
+                        </div>
+                    </div>
 
-<hr>
-
-<form method="POST" action="{{ url_for('admin_edit_student', st_id=student.id) }}">
-
-<label>Full Name</label><br>
-<input type="text" name="name"
-value="{{ student.name }}" required>
-
-<br><br>
-
-<label>Phone</label><br>
-<input type="text" name="phone"
-value="{{ student.phone or '' }}">
-
-<br><br>
-
-<label>Department</label><br>
-<select name="department">
-<option value="">Select</option>
-{% for d in departments %}
-<option value="{{ d }}"
-{% if student.department == d %}selected{% endif %}>
-{{ d }}
-</option>
-{% endfor %}
-</select>
-
-<br><br>
-
-<label>Degree</label><br>
-<select name="degree">
-<option value="">Select</option>
-{% for d in degrees %}
-<option value="{{ d }}"
-{% if student.degree == d %}selected{% endif %}>
-{{ d }}
-</option>
-{% endfor %}
-</select>
-
-<br><br>
-
-<label>Graduation Year</label><br>
-<input type="number" name="graduation_year"
-value="{{ student.graduation_year or '' }}"
-min="2020" max="2035">
-
-<br><br>
-
-<label>CGPA</label><br>
-<input type="number" name="cgpa"
-value="{{ student.cgpa or '' }}"
-step="0.01" min="0" max="10">
-
-<br><br>
-
-<label>Skills</label><br>
-<input type="text" name="skills"
-value="{{ student.skills or '' }}"
-placeholder="Comma-separated">
-
-<br><br>
-
-<label>Bio</label><br>
-<textarea name="bio" rows="2"
-placeholder="Short bio…">{{ student.bio or '' }}</textarea>
-
-<br><br>
-
-<button type="submit">Save Changes</button>
-<a href="{{ url_for('admin_students') }}">Cancel</a>
-
-</form>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save me-1"></i>Save Changes
+                        </button>
+                        <a href="{{ url_for('admin_students') }}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

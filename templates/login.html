@@ -1,58 +1,78 @@
 {% extends "base.html" %}
-{% block title %}Login - PlaceIIT{% endblock %}
+{% block title %}Login PlaceIITM{% endblock %}
 
 {% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
 
-<h2>Sign In</h2>
-<p>Welcome back to PlaceIIT</p>
+        <div class="card shadow-sm border-0 p-4">
+            <h3 class="text-center text-primary fw-bold mb-1">
+                <i class="bi bi-box-arrow-in-right me-1"></i>Sign In
+            </h3>
+            <p class="text-center text-muted small mb-4">Welcome back to PlaceIITM</p>
 
-<form method="POST" action="{{ url_for('login') }}">
+            <form method="POST" action="{{ url_for('login') }}">
 
-<p><strong>Sign in as:</strong></p>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Sign in as</label>
+                    <div class="d-flex gap-2">
+                        <input type="radio" class="btn-check" name="role" id="role_student"
+                               value="student" required
+                               {% if request.form.get('role') == 'student' %}checked{% endif %}>
+                        <label class="btn btn-outline-primary w-100" for="role_student">
+                            <i class="bi bi-mortarboard me-1"></i>Student
+                        </label>
 
-<input type="radio" name="role" id="role_student" value="student" required
-{% if request.form.get('role') == 'student' %}checked{% endif %}>
-<label for="role_student">Student</label>
+                        <input type="radio" class="btn-check" name="role" id="role_company"
+                               value="company"
+                               {% if request.form.get('role') == 'company' %}checked{% endif %}>
+                        <label class="btn btn-outline-success w-100" for="role_company">
+                            <i class="bi bi-building me-1"></i>Company
+                        </label>
 
-<input type="radio" name="role" id="role_company" value="company"
-{% if request.form.get('role') == 'company' %}checked{% endif %}>
-<label for="role_company">Company</label>
+                        <input type="radio" class="btn-check" name="role" id="role_admin"
+                               value="admin"
+                               {% if request.form.get('role') == 'admin' %}checked{% endif %}>
+                        <label class="btn btn-outline-warning w-100" for="role_admin">
+                            <i class="bi bi-shield-lock me-1"></i>Admin
+                        </label>
+                    </div>
+                </div>
 
-<input type="radio" name="role" id="role_admin" value="admin"
-{% if request.form.get('role') == 'admin' %}checked{% endif %}>
-<label for="role_admin">Admin</label>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" for="email">Email</label>
+                    <input type="email" class="form-control" name="email" id="email"
+                           placeholder="your@email.com" required autofocus
+                           value="{{ request.form.get('email', '') }}">
+                </div>
 
-<br><br>
+                <div class="mb-4">
+                    <label class="form-label fw-semibold" for="password">Password</label>
+                    <input type="password" class="form-control" name="password" id="password"
+                           placeholder="Enter your password" required>
+                </div>
 
-<label for="email">Email</label><br>
-<input type="email" name="email" id="email"
-placeholder="your@email.com"
-required
-value="{{ request.form.get('email', '') }}">
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-box-arrow-in-right me-1"></i>Login
+                    </button>
+                </div>
+            </form>
 
-<br><br>
+            <hr class="my-3">
+            <p class="text-center small text-muted mb-0">
+                No account?
+                <a href="{{ url_for('reg_student') }}" class="text-primary fw-semibold">Register as Student</a>
+                &nbsp;|&nbsp;
+                <a href="{{ url_for('reg_company') }}" class="text-primary fw-semibold">Register Company</a>
+            </p>
+        </div>
 
-<label for="password">Password</label><br>
-<input type="password" name="password" id="password"
-placeholder="Enter your password"
-required>
+        <div class="alert alert-info mt-3 small">
+            <i class="bi bi-info-circle me-1"></i>
+            <strong>Demo admin:</strong> 'siddharth@placeiitm.ac.in / Siddharth@300
+        </div>
 
-<br><br>
-
-<button type="submit">Login</button>
-
-</form>
-
-<hr>
-
-<p>
-No account?
-<a href="{{ url_for('reg_student') }}">Register as Student</a> |
-<a href="{{ url_for('reg_company') }}">Register Company</a>
-</p>
-
-<p>
-<strong>Demo admin:</strong> admin@placeiit.edu / Admin@123
-</p>
-
+    </div>
+</div>
 {% endblock %}

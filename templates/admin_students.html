@@ -1,101 +1,106 @@
 {% extends "base.html" %}
-{% block title %}Manage Students - PlaceIITM{% endblock %}
+{% block title %}Manage Students{% endblock %}
 
 {% block content %}
 
-<h2>Students</h2>
-<p>View, search, manage and blacklist students.</p>
+<div class="mb-4">
+    <h2 class="fw-bold mb-1">Students</h2>
+    <p class="text-muted mb-0">View, search, manage and blacklist students.</p>
+</div>
 
-<hr>
+<!-- Search -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('admin_students') }}">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Search</label>
+                    <input type="text" class="form-control" name="search"
+                           placeholder="Name, roll number, email or phone…"
+                           value="{{ search }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search me-1"></i>Search
+                    </button>
+                </div>
+                <div class="col-md-2">
+                    <a href="{{ url_for('admin_students') }}" class="btn btn-outline-secondary w-100">
+                        Clear
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 
-<h3>Search</h3>
+<!-- Table -->
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        {% if students %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Roll No.</th>
+                        <th>Department</th>
+                        <th>CGPA</th>
+                        <th>Applications</th>
+                        <th>Blacklisted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for st in students %}
+                    <tr>
+                        <td class="text-muted">{{ st.id }}</td>
+                        <td>
+                            <div class="fw-semibold">{{ st.stu_name }}</div>
+                            <small class="text-muted">{{ st.email }}</small>
+                        </td>
+                        <td class="text-muted">{{ st.roll_no or '-' }}</td>
+                        <td class="text-muted small">{{ st.department or '-' }}</td>
+                        <td>{{ st.cgpa or '-' }}</td>
+                        <td class="text-center">{{ st.applications | length }}</td>
+                        <td>
+                            {% if st.user.is_blacklisted %}
+                                <span class="badge bg-dark">Yes</span>
+                            {% else %}
+                                <span class="badge bg-light text-muted border">No</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-1">
+                                <a href="{{ url_for('admin_edit_student', stu_id=st.id) }}"
+                                   class="btn btn-sm btn-outline-primary">Edit</a>
 
-<form method="GET" action="{{ url_for('admin_students') }}">
+                                <form method="POST" action="{{ url_for('admin_student_blacklist', stu_id=st.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-dark">
+                                        {% if st.user.is_blacklisted %}Unblacklist{% else %}Blacklist{% endif %}
+                                    </button>
+                                </form>
 
-<label>Search</label><br>
-<input type="text" name="search"
-placeholder="Name, roll number, email or phone…"
-value="{{ search }}">
-
-<br><br>
-
-<button type="submit">Search</button>
-<a href="{{ url_for('admin_students') }}">Clear</a>
-
-</form>
-
-<hr>
-
-<h3>Students List</h3>
-
-{% if students %}
-
-<table border="1">
-
-<tr>
-<th>#</th>
-<th>Name</th>
-<th>Roll No.</th>
-<th>Department</th>
-<th>CGPA</th>
-<th>Applications</th>
-<th>Blacklisted</th>
-<th>Actions</th>
-</tr>
-
-{% for st in students %}
-
-<tr>
-
-<td>{{ st.id }}</td>
-
-<td>
-<strong>{{ st.name }}</strong><br>
-{{ st.email }}
-</td>
-
-<td>{{ st.roll_number or '—' }}</td>
-
-<td>{{ st.department or '—' }}</td>
-
-<td>{{ st.cgpa or '—' }}</td>
-
-<td>{{ st.applications | length }}</td>
-
-<td>
-{% if st.user.is_blacklisted %}
-Yes
-{% else %}
-No
-{% endif %}
-</td>
-
-<td>
-
-<a href="{{ url_for('admin_edit_student', st_id=st.id) }}">Edit</a>
-
-<form method="POST" action="{{ url_for('admin_toggle_blacklist_student', st_id=st.id) }}">
-<button type="submit">
-{% if st.user.is_blacklisted %}Unblacklist{% else %}Blacklist{% endif %}
-</button>
-</form>
-
-<form method="POST" action="{{ url_for('admin_delete_student', st_id=st.id) }}">
-<button type="submit">Delete</button>
-</form>
-
-</td>
-
-</tr>
-
-{% endfor %}
-
-</table>
-
-{% else %}
-
-<p>No students found.</p>
-
-{% endif %}
+                                <form method="POST" action="{{ url_for('admin_student_delete', stu_id=st.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-people fs-1 d-block mb-2 opacity-25"></i>
+                <p>No students found.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
 
 {% endblock %}

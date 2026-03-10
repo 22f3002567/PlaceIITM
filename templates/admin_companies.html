@@ -1,124 +1,145 @@
 {% extends "base.html" %}
-{% block title %}Manage Companies — PlaceIIT{% endblock %}
+{% block title %}Manage Companies- PlaceIITM{% endblock %}
 
 {% block content %}
 
-<h2>Companies</h2>
-<p>Approve, manage and monitor registered companies.</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">Companies</h2>
+        <p class="text-muted mb-0">Approve, manage and monitor registered companies.</p>
+    </div>
+</div>
 
-<hr>
+<!-- Search & filter -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('admin_companies') }}">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label fw-semibold">Search</label>
+                    <input type="text" class="form-control" name="search"
+                           placeholder="Company name…" value="{{ search }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All</option>
+                        <option value="pending"  {% if status_filter == 'pending'  %}selected{% endif %}>Pending</option>
+                        <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+                        <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search me-1"></i>Filter
+                    </button>
+                </div>
+                <div class="col-md-2">
+                    <a href="{{ url_for('admin_companies') }}" class="btn btn-outline-secondary w-100">
+                        Clear
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 
-<h3>Search & Filter</h3>
+<!-- Table -->
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        {% if companies %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Company</th>
+                        <th>Industry</th>
+                        <th>HR Contact</th>
+                        <th>Drives</th>
+                        <th>Status</th>
+                        <th>Blacklisted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for co in companies %}
+                    <tr>
+                        <td class="text-muted">{{ co.id }}</td>
+                        <td>
+                            <div class="fw-semibold">{{ co.company_name }}</div>
+                            <small class="text-muted">{{ co.user.email }}</small>
+                        </td>
+                        <td class="text-muted">{{ co.industry or '-' }}</td>
+                        <td class="text-muted small">
+                            {{ co.hr_name or '-' }}<br>
+                            {{ co.hr_contact or '' }}
+                        </td>
+                        <td class="text-center">{{ co.drives | length }}</td>
+                        <td>
+                            {% if co.approval_status == 'pending' %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            {% elif co.approval_status == 'approved' %}
+                                <span class="badge bg-success">Approved</span>
+                            {% else %}
+                                <span class="badge bg-danger">Rejected</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if co.user.is_blacklisted %}
+                                <span class="badge bg-dark">Yes</span>
+                            {% else %}
+                                <span class="badge bg-light text-muted border">No</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-1">
+                                
 
-<form method="GET" action="{{ url_for('admin_companies') }}">
+                                {% if co.approval_status != 'approved' %}
+                                <form method="POST" action="{{ url_for('admin_company_approve', co_id=co.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                                </form>
+                                {% endif %}
 
-<label>Search</label><br>
-<input type="text" name="search" placeholder="Company name…" value="{{ search }}">
+                                
+                                {% if co.approval_status != 'rejected' %}
+                                <form method="POST" action="{{ url_for('admin_company_reject', co_id=co.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-warning">Reject</button>
+                                </form>
+                                {% endif %}
 
-<br><br>
+                                
+                                <form method="POST" action="{{ url_for('admin_toggle_company_blacklist', co_id=co.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-dark">
+                                        {% if co.user.is_blacklisted %}Unblacklist{% else %}Blacklist{% endif %}
+                                    </button>
+                                </form>
 
-<label>Status</label><br>
-<select name="status">
-<option value="">All</option>
-<option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
-<option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
-<option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
-</select>
+                                
+                                <a href="{{ url_for('admin_edit_company', co_id=co.id) }}"
+                                   class="btn btn-sm btn-outline-primary">Edit</a>
 
-<br><br>
-
-<button type="submit">Filter</button>
-<a href="{{ url_for('admin_companies') }}">Clear</a>
-
-</form>
-
-<hr>
-
-<h3>Companies List</h3>
-
-{% if companies %}
-
-<table border="1">
-
-<tr>
-<th>#</th>
-<th>Company</th>
-<th>Industry</th>
-<th>HR Contact</th>
-<th>Drives</th>
-<th>Status</th>
-<th>Blacklisted</th>
-<th>Actions</th>
-</tr>
-
-{% for co in companies %}
-
-<tr>
-
-<td>{{ co.id }}</td>
-
-<td>
-<strong>{{ co.company_name }}</strong><br>
-{{ co.user.email }}
-</td>
-
-<td>{{ co.industry or '—' }}</td>
-
-<td>
-{{ co.hr_name or '—' }}<br>
-{{ co.hr_contact or '' }}
-</td>
-
-<td>{{ co.drives | length }}</td>
-
-<td>{{ co.approval_status }}</td>
-
-<td>
-{% if co.user.is_blacklisted %}
-Yes
-{% else %}
-No
-{% endif %}
-</td>
-
-<td>
-
-{% if co.approval_status != 'approved' %}
-<form method="POST" action="{{ url_for('admin_approve_company', co_id=co.id) }}">
-<button type="submit">Approve</button>
-</form>
-{% endif %}
-
-{% if co.approval_status != 'rejected' %}
-<form method="POST" action="{{ url_for('admin_reject_company', co_id=co.id) }}">
-<button type="submit">Reject</button>
-</form>
-{% endif %}
-
-<form method="POST" action="{{ url_for('admin_toggle_blacklist_company', co_id=co.id) }}">
-<button type="submit">
-{% if co.user.is_blacklisted %}Unblacklist{% else %}Blacklist{% endif %}
-</button>
-</form>
-
-<a href="{{ url_for('admin_edit_company', co_id=co.id) }}">Edit</a>
-
-<form method="POST" action="{{ url_for('admin_delete_company', co_id=co.id) }}">
-<button type="submit">Delete</button>
-</form>
-
-</td>
-
-</tr>
-
-{% endfor %}
-
-</table>
-
-{% else %}
-
-<p>No companies found.</p>
-
-{% endif %}
+                                
+                                <form method="POST" action="{{ url_for('admin_company_delete', co_id=co.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-building fs-1 d-block mb-2 opacity-25"></i>
+                <p>No companies found.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
 
 {% endblock %}

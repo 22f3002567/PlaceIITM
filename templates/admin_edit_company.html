@@ -1,71 +1,79 @@
 {% extends "base.html" %}
-{% block title %}Edit Company — PlaceIIT{% endblock %}
+{% block title %}Edit Company PlaceIITMM{% endblock %}
 
 {% block content %}
 
-<p>
-<a href="{{ url_for('admin_companies') }}">Back to Companies</a>
-</p>
+<div class="mb-4">
+    <a href="{{ url_for('admin_companies') }}" class="text-decoration-none text-muted small">
+        <i class="bi bi-arrow-left me-1"></i>Back to Companies
+    </a>
+    <h2 class="fw-bold mt-1">Edit Company</h2>
+    <p class="text-muted mb-0">{{ company.company_name }}</p>
+</div>
 
-<h2>Edit Company</h2>
-<p>{{ company.company_name }}</p>
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('admin_edit_company', co_id=company.id) }}">
 
-<hr>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Company Name</label>
+                            <input type="text" class="form-control" name="company_name"
+                                   value="{{ company.company_name }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Industry</label>
+                            <select name="industry" class="form-select">
+                                <option value="">- Select -</option>
+                                {% for ind in industries %}
+                                    <option value="{{ ind }}"
+                                        {% if company.industry == ind %}selected{% endif %}>
+                                        {{ ind }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Location</label>
+                            <input type="text" class="form-control" name="location"
+                                   value="{{ company.location or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Website</label>
+                            <input type="url" class="form-control" name="website"
+                                   value="{{ company.website or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">HR Name</label>
+                            <input type="text" class="form-control" name="hr_name"
+                                   value="{{ company.hr_name or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">HR Contact</label>
+                            <input type="text" class="form-control" name="hr_contact"
+                                   value="{{ company.hr_contact or '' }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Description</label>
+                            <textarea class="form-control" name="description" rows="3">{{ company.description or '' }}</textarea>
+                        </div>
+                    </div>
 
-<form method="POST" action="{{ url_for('admin_edit_company', co_id=company.id) }}">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save me-1"></i>Save Changes
+                        </button>
+                        <a href="{{ url_for('admin_companies') }}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
 
-<label>Company Name</label><br>
-<input type="text" name="company_name"
-value="{{ company.company_name }}" required>
-
-<br><br>
-
-<label>Industry</label><br>
-<select name="industry">
-<option value="">Select</option>
-{% for ind in industries %}
-<option value="{{ ind }}"
-{% if company.industry == ind %}selected{% endif %}>
-{{ ind }}
-</option>
-{% endfor %}
-</select>
-
-<br><br>
-
-<label>Location</label><br>
-<input type="text" name="location"
-value="{{ company.location or '' }}">
-
-<br><br>
-
-<label>Website</label><br>
-<input type="url" name="website"
-value="{{ company.website or '' }}">
-
-<br><br>
-
-<label>HR Name</label><br>
-<input type="text" name="hr_name"
-value="{{ company.hr_name or '' }}">
-
-<br><br>
-
-<label>HR Contact</label><br>
-<input type="text" name="hr_contact"
-value="{{ company.hr_contact or '' }}">
-
-<br><br>
-
-<label>Description</label><br>
-<textarea name="description" rows="3">{{ company.description or '' }}</textarea>
-
-<br><br>
-
-<button type="submit">Save Changes</button>
-
-<a href="{{ url_for('admin_companies') }}">Cancel</a>
-
-</form>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

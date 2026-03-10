@@ -493,7 +493,7 @@ def admin_drive_close(drive_id):
     flash(f"Placement drive '{drive.job_title}' closed successfully!", 'info')
     return redirect(url_for('admin_drives'))
 
-@app.route('/admin/applications', methods=['POST'])
+@app.route('/admin/applications', methods=['GET', 'POST'])
 @admin_required
 def admin_applications():
     search = request.args.get('search', '').strip()
@@ -510,7 +510,7 @@ def admin_applications():
         ))
     if status:
         query = query.filter_by(Application.status==status)
-    applications = query.order_by(Application.applied_on.desc()).all()
+    applications = query.order_by(Application.applied_at.desc()).all()
     return render_template('admin_applications.html', applications=applications, search=search, status_filter=status, app_statuses = App_statuses)
 
 @app.route('/company/dashboard')

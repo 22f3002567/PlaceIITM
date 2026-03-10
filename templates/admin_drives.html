@@ -1,114 +1,115 @@
 {% extends "base.html" %}
-{% block title %}Manage Drives — PlaceIIT{% endblock %}
+{% block title %}Manage Drives - PlaceIIT{% endblock %}
 
 {% block content %}
 
-<h2>Placement Drives</h2>
-<p>Approve, reject or close placement drives posted by companies.</p>
+<div class="mb-4">
+    <h2 class="fw-bold mb-1">Placement Drives</h2>
+    <p class="text-muted mb-0">Approve, reject or close placement drives posted by companies.</p>
+</div>
 
-<hr>
+<!-- Filter -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('admin_drives') }}">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Filter by Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All Statuses</option>
+                        <option value="pending"  {% if status_filter == 'pending'  %}selected{% endif %}>Pending</option>
+                        <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+                        <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+                        <option value="closed"   {% if status_filter == 'closed'   %}selected{% endif %}>Closed</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-funnel me-1"></i>Filter
+                    </button>
+                </div>
+                <div class="col-md-2">
+                    <a href="{{ url_for('admin_drives') }}" class="btn btn-outline-secondary w-100">Clear</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 
-<h3>Filter Drives</h3>
+<!-- Table -->
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        {% if drives %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Company</th>
+                        <th>Job Title</th>
+                        <th>Type</th>
+                        <th>Salary</th>
+                        <th>Deadline</th>
+                        <th>Apps</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for drive in drives %}
+                    <tr>
+                        <td class="text-muted">{{ drive.id }}</td>
+                        <td class="fw-semibold">{{ drive.company.company_name }}</td>
+                        <td>{{ drive.job_title }}</td>
+                        <td class="text-muted small">{{ drive.job_type or '-' }}</td>
+                        <td class="text-muted small">{{ drive.salary_range or '-' }}</td>
+                        <td class="text-muted small">
+                            {% if drive.appication_deadline %}
+                                {{ drive.appication_deadline.strftime('%d %b %Y') }}
+                            {% else %}--{% endif %}
+                        </td>
+                        <td class="text-center">{{ drive.applications | length }}</td>
+                        <td>
+                            {% if drive.status == 'pending' %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            {% elif drive.status == 'approved' %}
+                                <span class="badge bg-success">Approved</span>
+                            {% elif drive.status == 'rejected' %}
+                                <span class="badge bg-danger">Rejected</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Closed</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-1">
+                                {% if drive.status == 'pending' %}
+                                <form method="POST" action="{{ url_for('admin_drive_approve', drive_id=drive.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                                </form>
+                                <form method="POST" action="{{ url_for('admin_drive_reject', drive_id=drive.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-warning">Reject</button>
+                                </form>
+                                {% endif %}
 
-<form method="GET" action="{{ url_for('admin_drives') }}">
-
-<label>Filter by Status</label><br>
-
-<select name="status">
-<option value="">All Statuses</option>
-<option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
-<option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
-<option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
-<option value="closed" {% if status_filter == 'closed' %}selected{% endif %}>Closed</option>
-</select>
-
-<br><br>
-
-<button type="submit">Filter</button>
-<a href="{{ url_for('admin_drives') }}">Clear</a>
-
-</form>
-
-<hr>
-
-<h3>Placement Drives List</h3>
-
-{% if drives %}
-
-<table border="1">
-
-<tr>
-<th>#</th>
-<th>Company</th>
-<th>Job Title</th>
-<th>Type</th>
-<th>Salary</th>
-<th>Deadline</th>
-<th>Applications</th>
-<th>Status</th>
-<th>Actions</th>
-</tr>
-
-{% for drive in drives %}
-
-<tr>
-
-<td>{{ drive.id }}</td>
-
-<td>{{ drive.company.company_name }}</td>
-
-<td>{{ drive.job_title }}</td>
-
-<td>{{ drive.job_type or '—' }}</td>
-
-<td>{{ drive.salary_range or '—' }}</td>
-
-<td>
-{% if drive.appication_deadline %}
-{{ drive.appication_deadline.strftime('%d %b %Y') }}
-{% else %}
-—
-{% endif %}
-</td>
-
-<td>{{ drive.appications | length }}</td>
-
-<td>{{ drive.status }}</td>
-
-<td>
-
-{% if drive.status == 'pending' %}
-
-<form method="POST" action="{{ url_for('admin_approve_drive', drive_id=drive.id) }}">
-<button type="submit">Approve</button>
-</form>
-
-<form method="POST" action="{{ url_for('admin_reject_drive', drive_id=drive.id) }}">
-<button type="submit">Reject</button>
-</form>
-
-{% endif %}
-
-{% if drive.status == 'approved' %}
-
-<form method="POST" action="{{ url_for('admin_close_drive', drive_id=drive.id) }}">
-<button type="submit">Close</button>
-</form>
-
-{% endif %}
-
-</td>
-
-</tr>
-
-{% endfor %}
-
-</table>
-
-{% else %}
-
-<p>No drives found.</p>
-
-{% endif %}
+                                {% if drive.status == 'approved' %}
+                                <form method="POST" action="{{ url_for('admin_drive_close', drive_id=drive.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">Close</button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-briefcase fs-1 d-block mb-2 opacity-25"></i>
+                <p>No drives found.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
 
 {% endblock %}

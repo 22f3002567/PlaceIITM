@@ -1,77 +1,142 @@
 {% extends "base.html" %}
-
 {% block title %}Student Registration- PlaceIITM{% endblock %}
 
 {% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
 
-<h2>
-    Student Restration Form
-</h2>
-<p>
-    Dear Student, Create Your Placement Profile on PlaceIITM to connect with top recruiters and kickstart your career journey. Fill out the form below to showcase your skills, experiences, and aspirations to potential employers. Your profile will be visible to companies looking for talented individuals like you. Let's get started on building your future!
-</p>
-<p>Note: Fields marked with an asterisk (*) are required.</p>
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
 
-<form method="POST" action="{{ url_for('reg_student') }}" enctype="multipart/form-data">
-    <h3>Account Details</h3>
+                <h3 class="fw-bold text-primary mb-1">
+                    <i class="bi bi-person-plus-fill me-1"></i>Student Registration
+                </h3>
+                <p class="text-muted small mb-4">Dear Student, Create Your Placement Profile on PlaceIITM to connect with top recruiters and kickstart your career journey. Fill out the form below to showcase your skills, experiences, and aspirations to potential employers. Your profile will be visible to companies looking for talented individuals like you. Let's get started on building your future!</p>
+                <p class="text-muted small mb-5">Note: Fields marked with an asterisk (*) are required.</p>
 
-    <label for="username">Username *</label>
-    <input type="text" id="username" name="username" required placeholder="Siddharth" value="{{ form.get('username', '') }}"><br><br>
+                <form method="POST" action="{{ url_for('reg_student') }}" enctype="multipart/form-data">
 
-    <label for="email">Email *</label>
-    <input type="email" id="email" name="email" required placeholder="youroll@ds.study.iitm.ac.in" value="{{ form.get('email', '') }}"><br><br>
+                    <!-- Account -->
+                    <h6 class="fw-semibold text-muted text-uppercase mb-3" style="letter-spacing:0.5px; font-size:0.78rem;">
+                        Account Details
+                    </h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Username *</label>
+                            <input type="text" class="form-control" name="username" required
+                                   placeholder="Siddharth_iitm"
+                                   value="{{ form.get('username', '') }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Email *</label>
+                            <input type="email" class="form-control" name="email" required
+                                   placeholder="youroll@ds.study.iitm.ac.in"
+                                   value="{{ form.get('email', '') }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Roll Number *</label>
+                            <input type="text" class="form-control" name="roll_no" required
+                                   placeholder="e.g. 22f3002567"
+                                   value="{{ form.get('roll_no', '') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Password *</label>
+                            <input type="password" class="form-control" name="password"
+                                   placeholder="Minimum 6 characters" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Confirm Password *</label>
+                            <input type="password" class="form-control" name="confirm_password"
+                                   placeholder="Repeat password" required>
+                        </div>
+                    </div>
 
-    <label for="roll_no">Roll Number *</label>
-    <input type="text" id="roll_no" name="roll_no" required placeholder="Enter your roll number" value="{{ form.get('roll_no', '') }}"><br><br>
+                    <hr class="mb-4">
 
-    <label for="password">Password *</label>
-    <input type="password" id="password" name="password" required placeholder="Minimum 6 Char"><br><br>
-    <label for="confirm_password">Confirm Password *</label>
-    <input type="password" id="confirm_password" name="confirm_password" required placeholder="Re-enter your password"><br><br>
+                    <!-- Personal -->
+                    <h6 class="fw-semibold text-muted text-uppercase mb-3" style="letter-spacing:0.5px; font-size:0.78rem;">
+                        Personal Details
+                    </h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Full Name *</label>
+                            <input type="text" class="form-control" name="stu_name" required
+                                   placeholder="As on official records"
+                                   value="{{ form.get('stu_name', '') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Phone *</label>
+                            <input type="tel" class="form-control" name="phone" required
+                                   placeholder="10-digit mobile number"
+                                   value="{{ form.get('phone', '') }}">
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold">Department</label>
+                            <select name="department" class="form-select">
+                                <option value="">- Select -</option>
+                                {% for d in departments %}
+                                    <option value="{{ d }}"
+                                        {% if form.get('department') == d %}selected{% endif %}>
+                                        {{ d }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Degree</label>
+                            <select name="degree" class="form-select">
+                                <option value="">- Select -</option>
+                                {% for d in degrees %}
+                                    <option value="{{ d }}"
+                                        {% if form.get('degree') == d %}selected{% endif %}>
+                                        {{ d }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Graduation Year</label>
+                            <input type="number" class="form-control" name="grad_year"
+                                   placeholder="e.g. 2026" min="2020" max="2035"
+                                   value="{{ form.get('grad_year', '') }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">CGPA</label>
+                            <input type="number" class="form-control" name="cgpa"
+                                   placeholder="e.g. 8.5" step="0.01" min="0" max="10"
+                                   value="{{ form.get('cgpa', '') }}">
+                        </div>
+                        <div class="col-md-9">
+                            <label class="form-label fw-semibold">Skills <small class="text-muted fw-normal">(comma-separated)</small></label>
+                            <input type="text" class="form-control" name="skills"
+                                   placeholder="e.g. Python, Machine Learning, SQL"
+                                   value="{{ form.get('skills', '') }}">
+                        </div>
+                    </div>
 
-    <h3>Personal Details</h3>
+                    <hr class="mb-4">
 
-    <label for="name">Full Name *</label>
-    <input type="text" id="name" name="name" required placeholder="As an Official Record" value="{{ form.get('name', '') }}"><br><br>
+                    <!-- Resume -->
+                    <h6 class="fw-semibold text-muted text-uppercase mb-3" style="letter-spacing:0.5px; font-size:0.78rem;">
+                        Resume Upload <small class="text-muted fw-normal">(optional, PDF only, max 5 MB)</small>
+                    </h6>
+                    <div class="mb-4">
+                        <input type="file" class="form-control" name="resume" accept=".pdf">
+                    </div>
 
-    <label for="phone">Phone Number *</label>
-    <input type="tel" id="phone" name="phone" required placeholder="10-digit number" value="{{ form.get('phone', '') }}"><br><br>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-person-check-fill me-1"></i>Create Account
+                        </button>
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-secondary">
+                            Already registered? Login
+                        </a>
+                    </div>
 
-    <label for="department">Department </label>
-    <select name="department" id="department">
-        <option value="">Select Department</option>
-        <option value="CSE">Computer Science and Engineering</option>
-        <option value="ECE">Electronics and Communication Engineering</option>
-        <option value="ME">Mechanical Engineering</option>
-        <option value="CE">Civil Engineering</option>
-    </select><br><br>
+                </form>
+            </div>
+        </div>
 
-    <label for="degree">Degree</label>
-    <select name="degree" id="degree">
-        <option value="">Select Degree</option>
-        <option value="B.Tech">Bachelor of Technology</option>
-        <option value="M.Tech">Master of Technology</option>
-    </select><br><br>
-
-    <label for="grad_year">Graduation Year</label>
-    <input type="number" id="grad_year" name="grad_year" placeholder="e.g. 2026" min="2020" max="2030" value="{{ form.get('grad_year', '') }}"><br><br>
-
-    <label for="cgpa">CGPA</label>
-    <input type="number" id="cgpa" name="cgpa" step="0.01" min="0" max="10" placeholder="e.g. 8.75" value="{{ form.get('cgpa', '') }}"><br><br>
-
-    <label for="skills">Skills</label>
-    <textarea id="skills" name="skills" placeholder="List your skills (comma-separated)">{{ form.get('skills', '') }}</textarea><br><br>
-
-    <hr>
-
-    h3>Resume Upload (Optional, pdf only)</h3>
-
-    <input type="file" name="resume" id="resume" accept=".pdf"><br><br>
-    <button type="submit">Create Account</button>
-
-</form>
-
-<p>
-    Already Registered? <a href="{{ url_for('login') }}">Login Here</a>.
-</p>
+    </div>
+</div>
 {% endblock %}
