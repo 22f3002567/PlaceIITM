@@ -272,7 +272,10 @@ def admin_dashboard():
     pending_cos = Company.query.filter_by(approval_status=Pending_status).count()
     pending_drives = PlacementDrive.query.filter_by(status=Pending_status).count()
     total_selected = Application.query.filter_by(status=Selected_status).count()
-    recent_apps = (Application.query.join(Student).join(PlacementDrive).join(Company).order_by(Application.applied_at.desc()).limit(8).all())
+    recent_apps = (Application.query.join(Student, Application.student_id == Student.id)
+                   .join(PlacementDrive, Application.drive_id == PlacementDrive.id)
+                   .join(Company, PlacementDrive.company_id == Company.id)
+                   .order_by(Application.applied_at.desc()).limit(8).all())
 
     recent_cos = Company.query.order_by(Company.registered_at.desc()).limit(6).all()
     return render_template('admin_dashboard.html', total_students=total_students, total_companies=total_companies, total_drives=total_drives, total_apps=total_apps, pending_cos=pending_cos, pending_drives=pending_drives, total_selected=total_selected, recent_apps=recent_apps, recent_cos=recent_cos)
@@ -290,7 +293,7 @@ def admin_companies():
         query = query.filter_by(approval_status=status)
     
     companies = query.order_by(Company.registered_at.desc()).all()
-    return render_template('admin_companies.html', companies=companies, search=search, status=status)
+    return render_template('admin_companies.html', companies=companies, search=search, status_filter=status)
 
 @app.route('/admin/companies/<int:co_id>/approve', methods=['POST'])
 @admin_required
@@ -352,7 +355,7 @@ def admin_company_edit(co_id):
         db.session.commit()
         flash(f"Company '{co.company_name}' updated successfully!", 'success')
         return redirect(url_for('admin_companies'))
-    return render_template('admin_company_edit.html', company=co)
+    return render_template('admin_company_edit.html', company=co, industries = Industries)
 
 @app.route('/admin/students')
 @admin_required
