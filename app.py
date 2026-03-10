@@ -12,7 +12,7 @@ from models import (db,
                      App_statuses, Departments, Degrees, Industries, Job_types )
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
-
+from werkzeug.utils import secure_filename
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = 'placeiitm_secret_sidd'
@@ -40,7 +40,17 @@ login_manager.login_message_category = 'warning'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+ALLOWED_EXT = {'pdf'}
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXT
 
+def safe_float(s):
+    """Return float(s) clamped to 0 - 10 , or None on bad input.."""
+    try:
+        v = float(s)
+        return v if 0 <= V <= 10 else None
+    except (ValueError, TypeError):
+        return None
 
 
 def init_db():
@@ -231,6 +241,17 @@ def reg_student():
         if passwd != confirm_passwd:
             flash("Passwords do not match..", 'warning')
             return render_template('reg_student.html', form=request.form)
+        
+        
+        resume_filename = None
+        if 'resume' in request.files:
+            f = request.files['resume']
+            if f and f.filename and allowed_file(f.filename):
+                resume_filename = secure_filename(
+                    email.replace('@', "_").replace('.', '_') + '_resume.pdf'
+                )
+                f.save(os.path.join(app.config["UPLOAD_FOLDER"], resume_filename))
+                
         
         user = User(
             username=username,
@@ -490,7 +511,7 @@ def admin_applications():
     if status:
         query = query.filter_by(Application.status==status)
     applications = query.order_by(Application.applied_on.desc()).all()
-    return render_template('admin_applications.html', applications=applications, search=search, status_filter=status)
+    return render_template('admin_applications.html', applications=applications, search=search, status_filter=status, app_statuses = App_statuses)
 
 @app.route('/company/dashboard')
 @company_required
@@ -531,7 +552,7 @@ def company_create_drive():
         salary = request.form.get('salary_range', '').strip()
         job_type = request.form.get('job_type', '').strip()
         location = request.form.get('location', '').strip()
-        application_deadline_str = request.form.get('application_deadline', '').strip()
+        deadline_str = request.form.get('application_deadline', '').strip()
 
         if not job_title or not job_desc or not application_deadline_str:
             flash("Job title, description and application deadline are required fields..", 'warning')
@@ -542,7 +563,7 @@ def company_create_drive():
         #     flash("Invalid date format. Use YYYY-MM-DD.", 'warning')
         #     return render_template('company_create_drive.html', form=request.form)
 
-        deadline = datetime.strptime(application_deadline_str, '%Y-%m-%d').date()
+        deadline = datetime.strptime(deadline_str, '%Y-%m-%d').date()
         drive = PlacementDrive(
             company_id=co.id,
             job_title=job_title,
@@ -570,9 +591,17 @@ def company_edit_drive(drive_id):
     co = current_user.company_profile
     drive = PlacementDrive.query.filter_by(id=drive_id, company_id=co.id).first_or_404()
 
+    if drive.status not in (Pending_status, Rejected_status):
+        flash("Only pending or rejected drives can be edited..", 'warning')
+        return redirect(url_for('company_dashboard'))
+    
     if request.method == "POST":
         deadline_str = request.form.get("application_deadline", '').strip()
-        deadline = datetime.strptime(deadline_str, '%Y-%m-%d').date()\
+        if not deadline_str:
+            flash("wait a minute sir, Deadline is required..", 'warning')
+            return redirect(url_for('company_dashboard'))
+        
+        deadline = datetime.strptime(deadline_str, '%Y-%m-%d').date()
         
         drive.job_title = request.form.get('job_title', '').strip()
         drive.job_desp = request.form.get('job_descp', '').strip()
@@ -586,13 +615,13 @@ def company_edit_drive(drive_id):
         db.session.commit()
         flash("Drive updated and re-submitted for admin approval..", 'success')
         return redirect(url_for('company_dashboard'))
-    return render_template("Company_edit_drive.html", drive = drive, form={})
+    return render_template("Company_edit_drive.html", drive = drive, form={}, Job_types = Job_types)
 
 @app.route('/company/drive/<int:drive_id>/close', methods=["POST"])
 @company_required
 def company_close_drive(drive_id):
     co = current_user.company_profile
-    drive = PlacementDrive.query.filter_by(id= drive_id, company_id= co.id)
+    drive = PlacementDrive.query.filter_by(id= drive_id, company_id= co.id).first_or_404()
     drive.status = Closed_status
     db.session.commit()
     flash("Drive Closed..", 'info')
@@ -762,7 +791,7 @@ def student_history():
     student = current_user.student_profile
     history = (Application.query
                .filter_by(student_id=student.id)
-               .filter(Application.status.in_([Selected_status]))
+               .filter(Application.status.in_([Selected_status, Rejected_status]))
                .order_by(Application.application_date.desc()).all())
     return render_template('student_history.html', history=history)
 
@@ -775,7 +804,6 @@ def student_profile():
         grad_yr  = request.form.get('graduation_year', '').strip()
         cgpa_str = request.form.get('cgpa', '').strip()
 
-
         student.stu_name = request.form.get('stu_name', '').strip()
         student.phone = request.form.get('phone', '').strip()
         student.department = request.form.get('department', '').strip()
@@ -784,12 +812,22 @@ def student_profile():
         student.cgpa = float(cgpa_str) if cgpa_str else None
         student.skills = request.form.get('skills', '').strip()
         student.bio = request.form.get('bio', '').strip()
+
+        if 'resume' in request.files:
+            f = request.files['resume']
+            if f and f.filename and allowed_file(f.filename):
+                resume_filename = secure_filename(
+                    student.email.replace('@', '_').replace(',', '_') + '_resume.pdf'
+                )
+                f.save(os.path.join(app.config['UPLOAD_FOLDER'], resume_filename))
+                student.resume_filename = resume_filename
+
         db.session.commit()
         flash('Profile updated!', 'success')
         return redirect(url_for('student_profile'))
 
     return render_template('student_profile.html',
-        student=student)
+        student=student, departments = Departments, degree=Degrees)
 
 
 

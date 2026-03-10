@@ -34,7 +34,7 @@ View Resume
 </p>
 {% endif %}
 
-<hr>
+<hr><hr>
 
 <h3>Edit Profile</h3>
 
@@ -42,89 +42,89 @@ View Resume
       action="{{ url_for('student_profile') }}"
       enctype="multipart/form-data">
 
-<h4>Personal Information</h4>
+      <h4>Personal Information</h4>
 
-<label>Full Name</label><br>
-<input type="text" name="name"
-value="{{ student.name }}" required>
+      <label>Full Name</label><br>
+      <input type="text" name="name"
+      value="{{ student.name }}" required>
 
-<br><br>
+      <br><br>
 
-<label>Phone</label><br>
-<input type="tel" name="phone"
-value="{{ student.phone or '' }}"
-placeholder="10-digit mobile number">
+      <label>Phone</label><br>
+      <input type="tel" name="phone"
+      value="{{ student.phone or '' }}"
+      placeholder="10-digit mobile number">
 
-<br><br>
+      <br><br>
 
-<label>Department</label><br>
-<select name="department">
-<option value="">Select</option>
-{% for d in departments %}
-<option value="{{ d }}"
-{% if student.department == d %}selected{% endif %}>
-{{ d }}
-</option>
-{% endfor %}
-</select>
+      <label>Department</label><br>
+      <select name="department">
+      <option value="">Select</option>
+      {% for d in departments %}
+      <option value="{{ d }}"
+      {% if student.department == d %}selected{% endif %}>
+      {{ d }}
+      </option>
+      {% endfor %}
+      </select>
 
-<br><br>
+      <br><br>
 
-<label>Degree</label><br>
-<select name="degree">
-<option value="">Select</option>
-{% for d in degrees %}
-<option value="{{ d }}"
-{% if student.degree == d %}selected{% endif %}>
-{{ d }}
-</option>
-{% endfor %}
-</select>
+      <label>Degree</label><br>
+      <select name="degree">
+      <option value="">Select</option>
+      {% for d in degrees %}
+      <option value="{{ d }}"
+      {% if student.degree == d %}selected{% endif %}>
+      {{ d }}
+      </option>
+      {% endfor %}
+      </select>
 
-<br><br>
+      <br><br>
 
-<label>Graduation Year</label><br>
-<input type="number" name="graduation_year"
-value="{{ student.graduation_year or '' }}"
-min="2020" max="2035">
+      <label>Graduation Year</label><br>
+      <input type="number" name="graduation_year"
+      value="{{ student.graduation_year or '' }}"
+      min="2020" max="2035">
 
-<br><br>
+      <br><br>
 
-<label>CGPA</label><br>
-<input type="number" name="cgpa"
-value="{{ student.cgpa or '' }}"
-step="0.01" min="0" max="10">
+      <label>CGPA</label><br>
+      <input type="number" name="cgpa"
+      value="{{ student.cgpa or '' }}"
+      step="0.01" min="0" max="10">
 
-<br><br>
+      <br><br>
 
-<label>Skills (comma-separated)</label><br>
-<input type="text" name="skills"
-value="{{ student.skills or '' }}"
-placeholder="e.g. Python, ML, SQL">
+      <label>Skills (comma-separated)</label><br>
+      <input type="text" name="skills"
+      value="{{ student.skills or '' }}"
+      placeholder="e.g. Python, ML, SQL">
 
-<br><br>
+      <br><br>
 
-<label>Bio</label><br>
-<textarea name="bio" rows="3"
-placeholder="A short bio about yourself…">{{ student.bio or '' }}</textarea>
+      <label>Bio</label><br>
+      <textarea name="bio" rows="3"
+      placeholder="A short bio about yourself…">{{ student.bio or '' }}</textarea>
 
-<hr>
+      <hr>
 
-<h4>Resume Upload (PDF only, max 5 MB)</h4>
+      <h4>Resume Upload (PDF only, max 5 MB)</h4>
 
-{% if student.resume_filename %}
-<p>
-Current file: <strong>{{ student.resume_filename }}</strong>
-<br>
-Upload a new file to replace it.
-</p>
-{% endif %}
+      {% if student.resume_filename %}
+      <p>
+      Current file: <strong>{{ student.resume_filename }}</strong>
+      <br>
+      Upload a new file to replace it.
+      </p>
+      {% endif %}
 
-<input type="file" name="resume" accept=".pdf">
+      <input type="file" name="resume" accept=".pdf">
 
-<br><br>
+      <br><br>
 
-<button type="submit">Save Changes</button>
+      <button type="submit">Save Changes</button>
 
 </form>
 

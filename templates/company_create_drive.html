@@ -67,9 +67,9 @@ placeholder="e.g. B.Tech CSE/IT, CGPA ≥ 7.0, no active backlogs…">{{ form.ge
 <br><br>
 
 <label>Required Skills (comma-separated)</label><br>
-<input type="text" name="required_skills"
+<input type="text" name="req_skills"
 placeholder="e.g. Python, Django, REST APIs, SQL"
-value="{{ form.get('required_skills', '') }}">
+value="{{ form.get('req_skills', '') }}">
 
 <br><br>
 
@@ -78,8 +78,8 @@ value="{{ form.get('required_skills', '') }}">
 <h3>Application Deadline</h3>
 
 <label>Deadline *</label><br>
-<input type="date" name="application_deadline" required
-value="{{ form.get('application_deadline', '') }}">
+<input type="date" name="appication_deadline" required
+value="{{ form.get('appication_deadline', '') }}">
 
 <br><br>
 

@@ -56,54 +56,54 @@ Rejected
 
 <form method="POST" action="{{ url_for('company_profile') }}">
 
-<label>Industry</label><br>
-<select name="industry">
-<option value="">Select</option>
-{% for ind in industries %}
-<option value="{{ ind }}"
-{% if company.industry == ind %}selected{% endif %}>
-{{ ind }}
-</option>
-{% endfor %}
-</select>
+    <label>Industry</label><br>
+    <select name="industry">
+    <option value="">Select</option>
+    {% for ind in industries %}
+    <option value="{{ ind }}"
+    {% if company.industry == ind %}selected{% endif %}>
+    {{ ind }}
+    </option>
+    {% endfor %}
+    </select>
 
-<br><br>
+    <br><br>
 
-<label>Location</label><br>
-<input type="text" name="location"
-value="{{ company.location or '' }}"
-placeholder="e.g. Bengaluru, Karnataka">
+    <label>Location</label><br>
+    <input type="text" name="location"
+    value="{{ company.location or '' }}"
+    placeholder="ex: Bengaluru, Karnataka">
 
-<br><br>
+    <br><br>
 
-<label>HR Name</label><br>
-<input type="text" name="hr_name"
-value="{{ company.hr_name or '' }}"
-placeholder="e.g. Priya Sharma">
+    <label>HR Name</label><br>
+    <input type="text" name="hr_name"
+    value="{{ company.hr_name or '' }}"
+    placeholder="e.g. Priya Sharma">
 
-<br><br>
+    <br><br>
 
-<label>HR Contact</label><br>
-<input type="text" name="hr_contact"
-value="{{ company.hr_contact or '' }}"
-placeholder="Phone or email">
+    <label>HR Contact</label><br>
+    <input type="text" name="hr_contact"
+    value="{{ company.hr_contact or '' }}"
+    placeholder="Phone or email">
 
-<br><br>
+    <br><br>
 
-<label>Website</label><br>
-<input type="url" name="website"
-value="{{ company.website or '' }}"
-placeholder="https://www.company.com">
+    <label>Website</label><br>
+    <input type="url" name="website"
+    value="{{ company.website or '' }}"
+    placeholder="https://www.company.com">
 
-<br><br>
+    <br><br>
 
-<label>Description</label><br>
-<textarea name="description" rows="3"
-placeholder="Brief description of your company…">{{ company.description or '' }}</textarea>
+    <label>Description</label><br>
+    <textarea name="description" rows="3"
+    placeholder="Brief description of your company…">{{ company.description or '' }}</textarea>
 
-<br><br>
+    <br><br>
 
-<button type="submit">Save Changes</button>
+    <button type="submit">Save Changes</button>
 
 </form>
 

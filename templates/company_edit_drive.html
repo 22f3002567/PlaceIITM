@@ -60,14 +60,14 @@ value="{{ drive.location or '' }}">
 <br><br>
 
 <label>Required Skills</label><br>
-<input type="text" name="required_skills"
-value="{{ drive.required_skills or '' }}">
+<input type="text" name="req_skills"
+value="{{ drive.req_skills or '' }}">
 
 <br><br>
 
 <label>Application Deadline *</label><br>
-<input type="date" name="application_deadline" required
-value="{{ drive.application_deadline.strftime('%Y-%m-%d') if drive.application_deadline else '' }}">
+<input type="date" name="appication_deadline" required
+value="{{ drive.appication_deadline.strftime('%Y-%m-%d') if drive.application_deadline else '' }}">
 
 <br><br>
 

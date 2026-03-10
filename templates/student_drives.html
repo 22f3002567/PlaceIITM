@@ -12,15 +12,15 @@
 
 <form method="GET" action="{{ url_for('student_drives') }}">
 
-<label>Search</label><br>
-<input type="text" name="search"
-placeholder="Company, role or skills…"
-value="{{ search }}">
+    <label>Search</label><br>
+    <input type="text" name="search"
+    placeholder="Company, role or skills…"
+    value="{{ search }}">
 
-<br><br>
+    <br><br>
 
-<button type="submit">Search</button>
-<a href="{{ url_for('student_drives') }}">Clear</a>
+    <button type="submit">Search</button>
+    <a href="{{ url_for('student_drives') }}">Clear</a>
 
 </form>
 
@@ -72,7 +72,7 @@ Closes today!
 {% else %}
 
 <form method="POST" action="{{ url_for('student_apply', drive_id=drive.id) }}">
-<button type="submit">Apply Now</button>
+    <button type="submit">Apply Now</button>
 </form>
 
 {% endif %}
