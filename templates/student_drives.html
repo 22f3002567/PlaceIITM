@@ -48,7 +48,7 @@ value="{{ search }}">
 <p><strong>Location:</strong> {{ drive.location }}</p>
 {% endif %}
 
-{% if drive.application_deadline %}
+{% if drive.appication_deadline %}
 <p>
 <strong>Deadline:</strong>
 {% if drive.days_left == 0 %}
@@ -56,13 +56,13 @@ Closes today!
 {% elif drive.days_left <= 3 %}
 {{ drive.days_left }} day(s) left
 {% else %}
-{{ drive.application_deadline.strftime('%d %b %Y') }}
+{{ drive.appication_deadline.strftime('%d %b %Y') }}
 {% endif %}
 </p>
 {% endif %}
 
 {% if drive.required_skills %}
-<p><strong>Required Skills:</strong> {{ drive.required_skills }}</p>
+<p><strong>Required Skills:</strong> {{ drive.req_skills }}</p>
 {% endif %}
 
 {% if drive.id in applied_ids %}

@@ -668,17 +668,17 @@ def student_dashboard():
 
     today = date.today()
 
-    # Drives student hasn't applied to yet, that are open
+
     applied_drive_ids = [a.drive_id for a in student.applications]
     available_drives  = (PlacementDrive.query
                          .filter_by(status=Approved_status)
-                         .filter(PlacementDrive.application_deadline >= today)
+                         .filter(PlacementDrive.appication_deadline >= today)
                          .filter(PlacementDrive.id.notin_(applied_drive_ids) if applied_drive_ids else True)
-                         .order_by(PlacementDrive.application_deadline.asc())
+                         .order_by(PlacementDrive.appication_deadline.asc())
                          .all())
 
     recent_apps= (Application.query.filter_by(student_id=student.id)
-                      .order_by(Application.application_date.desc()).limit(5).all())
+                      .order_by(Application.applied_at.desc()).limit(5).all())
     total_apps= Application.query.filter_by(student_id=student.id).count()
     applied_count= Application.query.filter_by(student_id=student.id, status=Applied_status).count()
     shortlisted_c = Application.query.filter_by(student_id=student.id, status=Shortlisted_status).count()
@@ -704,19 +704,19 @@ def student_drives():
 
     query = (PlacementDrive.query.join(Company)
              .filter(PlacementDrive.status == Approved_status)
-             .filter(PlacementDrive.application_deadline >= today))
+             .filter(PlacementDrive.appication_deadline >= today))
     if search:
         query = query.filter(or_(
             PlacementDrive.job_title.ilike(f'%{search}%'),
             Company.company_name.ilike(f'%{search}%'),
-            PlacementDrive.required_skills.ilike(f'%{search}%'),
+            PlacementDrive.req_skills.ilike(f'%{search}%'),
         ))
-    drives = query.order_by(PlacementDrive.application_deadline.asc()).all()
+    drives = query.order_by(PlacementDrive.appication_deadline.asc()).all()
 
     applied_ids = {a.drive_id for a in student.applications}
     for d in drives:
-        if d.application_deadline:
-            d.days_left = (d.application_deadline - today).days
+        if d.appication_deadline:
+            d.days_left = (d.appication_deadline - today).days
         else:
             d.days_left = 999
 
@@ -728,6 +728,11 @@ def student_drives():
 @student_required
 def student_apply(drive_id):
     student = current_user.student_profile
+    drive = PlacementDrive.query.get_or_404(drive_id)
+    if not drive.is_open():
+        flash("Sorry, This drive is not longer accepting applications.", "warning")
+        return redirect(url_for('student_drives'))
+    
     application = Application(student_id=student.id, drive_id=drive_id)
     db.session.add(application)
     db.session.commit()
@@ -744,10 +749,11 @@ def student_applications():
     query = Application.query.filter_by(student_id=student.id)
     if status:
         query = query.filter_by(status=status)
-    applications = query.order_by(Application.application_date.desc()).all()
+
+    applications = query.order_by(Application.applied_at.desc()).all()
 
     return render_template('student_applications.html',
-        applications=applications, status_filter=status)
+        applications=applications, status_filter=status, app_statuses = App_statuses)
 
 
 @app.route('/student/history')
@@ -770,11 +776,11 @@ def student_profile():
         cgpa_str = request.form.get('cgpa', '').strip()
 
 
-        student.name = request.form.get('name', '').strip()
+        student.stu_name = request.form.get('stu_name', '').strip()
         student.phone = request.form.get('phone', '').strip()
         student.department = request.form.get('department', '').strip()
         student.degree = request.form.get('degree', '').strip()
-        student.graduation_year = int(grad_yr) if grad_yr.isdigit() else None
+        student.grad_year = int(grad_yr) if grad_yr.isdigit() else None
         student.cgpa = float(cgpa_str) if cgpa_str else None
         student.skills = request.form.get('skills', '').strip()
         student.bio = request.form.get('bio', '').strip()

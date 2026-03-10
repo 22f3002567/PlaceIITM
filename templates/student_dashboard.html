@@ -1,20 +1,22 @@
 {% extends "base.html" %}
-{% block title %}Student Dashboard - PlaceIIT{% endblock %}
+{% block title %}Student Dashboard - PlaceIITM{% endblock %}
 
 {% block content %}
 
-<h2>Dashboard</h2>
-<p>Welcome back, {{ student.name }}</p>
-
+<div>
+    <h2>Dashboard</h2>
+    <p>Welcome back, {{ student.stu_name }}</p>
+</div>
 <hr>
 
 {% set pc = student.profile_completeness %}
 {% if pc < 100 %}
 
+
 <p>
-<strong>Profile {{ pc }}% complete.</strong>
-A complete profile improves your chances.
-<a href="{{ url_for('student_profile') }}">Complete now</a>
+    <strong>Profile {{ pc }}% complete.</strong>
+    A complete profile improves your chances.
+    <a href="{{ url_for('student_profile') }}">Complete now</a>
 </p>
 
 <p>Profile Completion: {{ pc }}%</p>
@@ -32,60 +34,50 @@ A complete profile improves your chances.
 
 <hr>
 
-{% if app_chart %}
-
-<h3>My Application Summary</h3>
-
-<img src="data:image/png;base64,{{ app_chart }}" alt="Application Chart">
-
-<hr>
-
-{% endif %}
-
 <h3>Open Drives</h3>
 
 {% if available_drives %}
 
 <table border="1" cellpadding="6">
 
-<tr>
-<th>Company</th>
-<th>Role</th>
-<th>Type</th>
-<th>Salary</th>
-<th>Deadline</th>
-<th>Apply</th>
-</tr>
+    <tr>
+        <th>Company</th>
+        <th>Role</th>
+        <th>Type</th>
+        <th>Salary</th>
+        <th>Deadline</th>
+        <th>Apply</th>
+    </tr>
 
-{% for drive in available_drives[:5] %}
+    {% for drive in available_drives[:5] %}
 
-<tr>
+    <tr>
 
-<td>{{ drive.company.company_name }}</td>
+        <td>{{ drive.company.company_name }}</td>
 
-<td>{{ drive.job_title }}</td>
+        <td>{{ drive.job_title }}</td>
 
-<td>{{ drive.job_type or '-' }}</td>
+        <td>{{ drive.job_type or '-' }}</td>
 
-<td>{{ drive.salary_range or '-' }}</td>
+        <td>{{ drive.salary_range or '-' }}</td>
 
-<td>
-{% if drive.application_deadline %}
-{{ drive.application_deadline.strftime('%d %b %Y') }}
-{% else %}
--
-{% endif %}
-</td>
+        <td>
+        {% if drive.appication_deadline %}
+        {{ drive.appication_deadline.strftime('%d %b %Y') }}
+        {% else %}
+        -
+        {% endif %}
+        </td>
 
-<td>
-<form method="POST" action="{{ url_for('student_apply', drive_id=drive.id) }}">
-<button type="submit">Apply</button>
-</form>
-</td>
+        <td>
+            <form method="POST" action="{{ url_for('student_apply', drive_id=drive.id) }}">
+            <button type="submit">Apply</button>
+            </form>
+        </td>
 
-</tr>
+    </tr>
 
-{% endfor %}
+    {% endfor %}
 
 </table>
 
@@ -107,33 +99,43 @@ A complete profile improves your chances.
 
 <table border="1" cellpadding="6">
 
-<tr>
-<th>Company</th>
-<th>Role</th>
-<th>Applied On</th>
-<th>Status</th>
-</tr>
+    <tr>
+    <th>Company</th>
+    <th>Role</th>
+    <th>Applied On</th>
+    <th>Status</th>
+    </tr>
 
-{% for app in recent_apps %}
+    {% for app in recent_apps %}
 
-<tr>
+    <tr>
 
-<td>{{ app.drive.company.company_name }}</td>
+        <td>{{ app.drive.company.company_name }}</td>
 
-<td>{{ app.drive.job_title }}</td>
+        <td>{{ app.drive.job_title }}</td>
 
-<td>{{ app.application_date.strftime('%d %b %Y') }}</td>
+        <td>{{ app.appication_date.strftime('%d %b %Y') }}</td>
 
-<td>{{ app.status }}</td>
+        <td>{% if app.status == "Applied" %}
+                <span>Applied</span>
+            {% elif app.status == "Shortlisted" %}
+                <span>Shortlisted</span>
+            {% elif app.status == 'Selected' %}
+                <span>Selected</span>
+            {% else %}
+                <span>Rejected</span>
+            {% endif %}
 
-</tr>
+        </td>
 
-{% endfor %}
+    </tr>
+
+    {% endfor %}
 
 </table>
 
 <p>
-<a href="{{ url_for('student_applications') }}">View All Applications</a>
+    <a href="{{ url_for('student_applications') }}">View All Applications</a>
 </p>
 
 {% else %}

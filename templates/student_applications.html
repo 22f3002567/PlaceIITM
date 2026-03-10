@@ -12,15 +12,17 @@
 
 <form method="GET" action="{{ url_for('student_applications') }}">
 
-<label>Status</label><br>
-<select name="status">
-<option value="">All</option>
-{% for s in app_statuses %}
-<option value="{{ s }}" {% if status_filter == s %}selected{% endif %}>
-{{ s }}
-</option>
-{% endfor %}
-</select>
+    <label>Status</label><br>
+
+    <select name="status">
+
+    <option value="">All</option>
+    {% for s in app_statuses %}
+    <option value="{{ s }}" {% if status_filter == s %}selected{% endif %}>
+    {{ s }}
+    </option>
+    {% endfor %}
+    </select>
 
 <br><br>
 
@@ -47,7 +49,7 @@
 
 <p>
 <strong>Applied On:</strong>
-{{ app.application_date.strftime('%d %b %Y') }}
+{{ app.appication_date.strftime('%d %b %Y') }}
 </p>
 
 {% if app.status == 'Rejected' %}
