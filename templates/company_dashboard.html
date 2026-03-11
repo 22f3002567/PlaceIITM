@@ -89,14 +89,13 @@
     </div>
 </div>
 
-<!-- Analytics chart -->
 {% if app_chart %}
-<div class="card shadow-sm border-0 mb-4">
-    <div class="card-body">
-        <h5 class="card-title fw-semibold mb-3">Applicants per Drive</h5>
-        <img src="data:image/png;base64,{{ app_chart }}" class="img-fluid rounded" alt="Applicants per Drive Chart">
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <h5 class="card-title fw-semibold mb-3">Applicants per Drive</h5>
+            <img src="data:image/png;base64,{{ app_chart }}" class="img-fluid rounded" alt="Applicants per Drive Chart">
+        </div>
     </div>
-</div>
 {% endif %}
 
 <!-- My drives -->

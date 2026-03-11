@@ -112,15 +112,16 @@ class PlacementDrive(db.Model):
     salary_range = db.Column(db.String(100))
     location = db.Column(db.String(100))
     appication_deadline = db.Column(db.Date)
-    status = db.Column(db.String(30), default='peniding', nullable=False)
+    status = db.Column(db.String(30), default=Pending_status, nullable=False)
     created_at = db.Column(db.DateTime, default= datetime.utcnow)
     updated_at = db.Column(db.DateTime, default= datetime.utcnow, onupdate=datetime.utcnow)
 
     def is_open(self):
-        return (self.status == Approved_status and 
-                self.appication_deadline and 
-                self.appication_deadline >= date.today()
-                )
+        return (
+            self.status == Approved_status and
+            self.appication_deadline is not None and
+            self.appication_deadline >= date.today()
+        )
     
     applications = db.relationship("Application", backref='drive', lazy=True, cascade='all, delete-orphan')
 
@@ -134,7 +135,7 @@ class Application(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False)
     drive_id = db.Column(db.Integer, db.ForeignKey('placement_drives.id'), nullable=False)
-    status = db.Column(db.String(30), default='pending', nullable=False)
+    status = db.Column(db.String(30), default=Applied_status, nullable=False)
     applied_at = db.Column(db.DateTime, default= datetime.utcnow)
     notes = db.Column(db.Text)
 
