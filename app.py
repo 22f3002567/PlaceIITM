@@ -1,18 +1,20 @@
 from datetime import datetime, date
-from operator import or_
-import os
+from sqlalchemy import or_, func
+import os, io 
 
-from flask import Flask, render_template, request, redirect, url_for, flash, abort
+from flask import Flask, render_template, request, redirect, url_for, flash, abort, send_from_directory
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_sqlalchemy import SQLAlchemy
 from models import (db,
                      User, Company, Student, PlacementDrive, Application,
                      Admin_role, Company_role, Student_role, Pending_status, Approved_status, Rejected_status, Closed_status, 
-                     Applied_status, Shortlisted_status, Selected_status, Rejected_status,
+                     Applied_status, Shortlisted_status, Selected_status, Rejected_app,
                      App_statuses, Departments, Degrees, Industries, Job_types )
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
 from werkzeug.utils import secure_filename
+from sqlalchemy.exc import IntegrityError
+
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = 'placeiitm_secret_sidd'
@@ -41,6 +43,7 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 ALLOWED_EXT = {'pdf'}
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXT
 
@@ -48,7 +51,7 @@ def safe_float(s):
     """Return float(s) clamped to 0 - 10 , or None on bad input.."""
     try:
         v = float(s)
-        return v if 0 <= V <= 10 else None
+        return v if 0 <= v <= 10 else None
     except (ValueError, TypeError):
         return None
 
@@ -59,7 +62,9 @@ def init_db():
         
         if not User.query.filter_by(role=Admin_role).first():
             print("No Admin found. Initializing default Admin account...")
-            hashed_pw = generate_password_hash('Siddharth@300', method='pbkdf2:sha256', salt_length=8) 
+            hashed_pw = generate_password_hash(
+                'Siddharth@300', method='pbkdf2:sha256', salt_length=8
+                ) 
             
             admin_user = User(
                 username='siddharth_admin',
@@ -147,7 +152,11 @@ def login():
 
         if not user.is_active:
             flash("Hey sir, Your account is deactivated, Please contact admin..", 'danger')
-            return redirect(url_for('login'))    
+            return redirect(url_for('login')) 
+
+        if user.is_blacklisted:
+            flash("Your accountt has been blacklistedd.. Please Contact to the placement cell..", 'danger')
+            return redirect(url_for('login'))   
         
         login_user(user)
         flash(f"Welcome back, {user.username}! You have successfully logged in as {user.role}..", 'success')
@@ -189,31 +198,47 @@ def reg_company():
             flash("Passwords do not match..", 'warning')
             return render_template('reg_company.html', form=request.form, industries=Industries)
 
-        user = User(
-            username=username,
-            email=email,
-            passwd=generate_password_hash(passwd),
-            role=Company_role
-        )
-        db.session.add(user)
-        db.session.flush()
+        if len(passwd) < 6:
+            flash("Password must be at least 6 chars..", "warning")
 
-        company = Company(
-            user_id=user.id,
-            company_name=company_name,
-            industry=industry,
-            hr_name=hr_name,
-            hr_contact=hr_contact,
-            website=website,
-            description=description,
-            location=location
-        )
-        db.session.add(company)
-        db.session.commit()
-        flash("Company registration successfully Submitted! Your account is pending approval by the Placement Cell.", 'success')
-        return redirect(url_for('login'))
+        try:
+
+            user = User(
+                username=username,
+                email=email,
+                passwd=generate_password_hash(passwd),
+                role=Company_role
+            )
+            db.session.add(user)
+            db.session.flush()
+
+            company = Company(
+                user_id=user.id,
+                company_name=company_name,
+                industry=industry,
+                hr_name=hr_name,
+                hr_contact=hr_contact,
+                website=website,
+                description=description,
+                location=location
+            )
+            db.session.add(company)
+            db.session.commit()
+            flash("Company registration successfully Submitted! Your account is pending approval by the Placement Cell.", 'success')
+            return redirect(url_for('login'))
         
-        
+        except IndentationError as e:
+            db.session.rollback()
+            err = str(e.orig)
+            if 'email' in err:
+                flash("This email is already registered..", 'warning')
+            elif 'username' in err:
+                flash("This email is already registered..", 'warning')
+            
+            else:
+                flash("Registration failed.. Please try again..", 'danger')
+            return render_template('reg_company.html', form={}, industries=Industries)
+            
     return render_template('reg_company.html', form={}, industries=Industries)
 
 @app.route('/register/student', methods=['GET', 'POST'])
@@ -237,11 +262,14 @@ def reg_student():
 
         if not all([username, email, passwd, confirm_passwd, stu_name, roll_no]):
             flash("Please fill in all required fields (*).", 'warning')
-            return render_template('reg_student.html', form=request.form)
+            return render_template('reg_student.html', form=request.form, departments=Departments, degrees=Degrees)
         if passwd != confirm_passwd:
             flash("Passwords do not match..", 'warning')
-            return render_template('reg_student.html', form=request.form)
+            return render_template('reg_student.html', form=request.form, departments=Departments, degrees=Degrees)
         
+        if len(passwd) < 6:
+            flash("Passward must be at least 6 chars..", 'warning')
+            return render_template('reg_student.html', form=request.form, departments=Departments, degrees=Degrees)
         
         resume_filename = None
         if 'resume' in request.files:
@@ -252,36 +280,54 @@ def reg_student():
                 )
                 f.save(os.path.join(app.config["UPLOAD_FOLDER"], resume_filename))
                 
-        
-        user = User(
-            username=username,
-            email=email,
-            passwd=generate_password_hash(passwd),
-            role=Student_role
-        )
-        db.session.add(user)
-        db.session.flush()
-        
+        try:
+            user = User(
+                username=username,
+                email=email,
+                passwd=generate_password_hash(passwd),
+                role=Student_role
+            )
+            db.session.add(user)
+            db.session.flush()
+            
 
-        student = Student(
-            user_id=user.id,
-            stu_name=stu_name,
-            email=email,
-            phone=phone,
-            roll_no=roll_no,
-            department=dept,
-            degree=degree,
-            grad_year=int(grad_year) if grad_year.isdigit() else None,
-            cgpa=float(cgpa) if cgpa.replace('.','',1).isdigit() else None,
-            skilss=skills,
-            resume_filename= resume_filename
-        )
-        db.session.add(student)
-        db.session.commit()
-        flash("Student registration successfully Submitted! Please Login", 'success')
-        return redirect(url_for('login'))
+            student = Student(
+                user_id=user.id,
+                stu_name=stu_name,
+                email=email,
+                phone=phone,
+                roll_no=roll_no,
+                department=dept,
+                degree=degree,
+                grad_year=int(grad_year) if grad_year.isdigit() else None,
+                cgpa=float(cgpa) if cgpa.replace('.','',1).isdigit() else None,
+                skills=skills,
+                resume_filename= resume_filename
+            )
+            db.session.add(student)
+            db.session.commit()
+            flash("Student registration successfully Submitted! Please Login", 'success')
+            return redirect(url_for('login'))
+        except IntegrityError as e:
+            db.session.rollback()
+            err = str(e.orig)
+            if 'email' in err:
+                flash("This email is already registered.", 'warning')
+            elif 'roll_no' in err:
+                flash("This roll number is already registered.", 'warning')
+            elif 'username' in err:
+                flash("This username is already taken.", 'warning')
+            else:
+                flash("Registration failed. Please try again.", 'danger')
+            return render_template('reg_student.html', form=request.form, departments=Departments, degrees=Degrees)
+        
+    return render_template('reg_student.html', form={}, departments=Departments, degrees=Degrees)
 
-    return render_template('reg_student.html', form={})
+@app.route('/resume/<filename>')
+@login_required
+def serve_resume(filename):
+    safe = secure_filename(filename)
+    return send_from_directory(app.config['UPLOAD_FOLDER'], safe)
 
 @app.route('/admin/dashboard')
 @admin_required
@@ -349,7 +395,8 @@ def admin_toggle_company_blacklist(co_id):
     co = Company.query.get_or_404(co_id)
     co.user.is_blacklisted = not co.user.is_blacklisted
     db.session.commit()
-    flash(f"Company '{co.company_name}' blacklisted successfully!", 'info')
+    action = 'blacklisted' if co.user.is_blacklisted else 'unblacklisted'
+    flash(f"Company '{co.company_name}' {action} successfully!", 'info')
     return redirect(url_for('admin_companies'))
 
 @app.route('/admin/companies/<int:co_id>/unblacklist', methods=['POST'])
@@ -358,7 +405,8 @@ def admin_toggle_company_unblacklist(co_id):
     co = Company.query.get_or_404(co_id)
     co.user.is_blacklisted = not co.user.is_blacklisted
     db.session.commit()
-    flash(f"Company '{co.company_name}' unblacklisted successfully!", 'info')
+    action = 'unblacklisted' if not co.user.is_blacklisted else 'blacklisted'
+    flash(f"Company '{co.company_name}' {action} successfully!", 'info')
     return redirect(url_for('admin_companies'))
 
 @app.route('/admin/companies/<int:co_id>/edit', methods=['GET', 'POST'])
@@ -376,7 +424,7 @@ def admin_company_edit(co_id):
         db.session.commit()
         flash(f"Company '{co.company_name}' updated successfully!", 'success')
         return redirect(url_for('admin_companies'))
-    return render_template('admin_company_edit.html', company=co, industries = Industries)
+    return render_template('admin_company_edit.html', company=co, industries=Industries)
 
 @app.route('/admin/students')
 @admin_required
@@ -399,7 +447,7 @@ def admin_students():
         query = query.filter_by(grad_year=grad_year)
     
     students = query.order_by(Student.registered_at.desc()).all()
-    return render_template('admin_students.html', students=students, search=search, dept=dept, grad_year=grad_year)
+    return render_template('admin_students.html', students=students, search=search, dept=dept, grad_year=grad_year, departments=Departments)
 
 
 @app.route('/admin/students/<int:stu_id>/edit', methods=['GET', 'POST'])
@@ -412,16 +460,18 @@ def admin_student_edit(stu_id):
         stu.stu_name = request.form.get('stu_name', '').strip()
         stu.phone = request.form.get('phone', '').strip()
         stu.department = request.form.get('department', '').strip()
+        stu.degree = request.form.get('degree', '').strip()
         stu.grad_year = int(grad_yr) if grad_yr.isdigit() else None
         stu.cgpa = float(cgpa_str) if cgpa_str.replace('.','',1).isdigit() else None
         stu.skills = request.form.get('skills', '').strip()
+        stu.bio = request.form.get('bio', '').strip()
         stu.roll_no = request.form.get('roll_no', '').strip()
         stu.email = request.form.get('email', '').strip()
          
         db.session.commit()
         flash(f"Student '{stu.stu_name}' updated successfully!", 'success')
         return redirect(url_for('admin_students'))
-    return render_template('admin_student_edit.html', student=stu)
+    return render_template('admin_student_edit.html', student=stu, department=Departments, degrees=Degrees)
 
 @app.route('/admin/students/<int:stu_id>/delete', methods=['POST'])
 @admin_required
@@ -438,7 +488,8 @@ def admin_student_blacklist(stu_id):
     stu = Student.query.get_or_404(stu_id)
     stu.user.is_blacklisted = not stu.user.is_blacklisted
     db.session.commit()
-    flash(f"Student '{stu.stu_name}' blacklisted successfully!", 'warning')
+    action = "blacklisted" if stu.user.is_blacklisted else "unblacklisted"
+    flash(f"Student '{stu.stu_name}' {action} successfully!", 'warning')
     return redirect(url_for('admin_students'))
 
 @app.route('/admin/students/<int:stu_id>/unblacklist', methods=['POST'])
@@ -447,7 +498,8 @@ def admin_student_unblacklist(stu_id):
     stu = Student.query.get_or_404(stu_id)
     stu.user.is_blacklisted = not stu.user.is_blacklisted
     db.session.commit()
-    flash(f"Student '{stu.stu_name}' unblacklisted successfully!", 'success')
+    action = 'unblacklisted' if not stu.user.is_blacklisted else 'blacklisted'
+    flash(f"Student '{stu.stu_name}' {action} successfully!", 'success')
     return redirect(url_for('admin_students'))
 
 
@@ -459,9 +511,12 @@ def admin_drives():
 
     query = PlacementDrive.query.join(Company)
     if search:
-        query = query.filter(PlacementDrive.job_title.ilike(f'%{search}%') | Company.company_name.ilike(f'%{search}%'))
+        query = query.filter(or_(
+            PlacementDrive.job_title.ilike(f'%{search}%'),
+            Company.company_name.ilike(f'%{search}%')
+        ))
     if status:
-        query = query.filter_by(status=status)
+        query = query.filter_by(PlacementDrive.status == status)
     
     drives = query.order_by(PlacementDrive.created_at.desc()).all()
     return render_template('admin_drives.html', drives=drives, search=search, status_filter=status)
@@ -493,12 +548,15 @@ def admin_drive_close(drive_id):
     flash(f"Placement drive '{drive.job_title}' closed successfully!", 'info')
     return redirect(url_for('admin_drives'))
 
-@app.route('/admin/applications', methods=['GET', 'POST'])
+@app.route('/admin/applications')
 @admin_required
 def admin_applications():
     search = request.args.get('search', '').strip()
     status = request.args.get('status', '').strip()
-    query = Application.query.join(Student).join(PlacementDrive).join(Company)
+    query = (Application.query
+             .join(Student, Application.student_id == Student.id)
+             .join(PlacementDrive, Application.drive_id == PlacementDrive.id)
+             .join(Company, PlacementDrive.company_id == Company.id))
     if search:
         query = query.filter(or_(
             Student.stu_name.ilike(f'%{search}%'),
@@ -509,9 +567,9 @@ def admin_applications():
             Company.company_name.ilike(f'%{search}%')
         ))
     if status:
-        query = query.filter_by(Application.status==status)
+        query = query.filter(Application.status == status)
     applications = query.order_by(Application.applied_at.desc()).all()
-    return render_template('admin_applications.html', applications=applications, search=search, status_filter=status, app_statuses = App_statuses)
+    return render_template('admin_applications.html', applications=applications, search=search, status_filter=status, app_statuses=App_statuses)
 
 @app.route('/company/dashboard')
 @company_required
@@ -530,11 +588,13 @@ def company_dashboard():
     Pending_drives = sum(1 for d in drives if d.status == Pending_status)
     Closed_drives = sum(1 for d in drives if d.status == Closed_status)
     total_apps = sum(len(d.applications) for d in drives)
-    total_selected = (Application.query.join(PlacementDrive)
-                      .filter(PlacementDrive.company_id==co.id, Application.status==Selected_status)
+    total_selected = (Application.query
+                      .join(PlacementDrive, Application.drive_id == PlacementDrive.id)
+                      .filter(PlacementDrive.company_id == co.id,
+                               Application.status == Selected_status)
                       .count())
     
-    return render_template('company_dashboard.html', company=co, total_drives=total_drives, active_drives=active_drives, pending_drives=Pending_drives, closed_drives=Closed_drives, total_apps=total_apps, total_selected=total_selected)
+    return render_template('company_dashboard.html', company=co, drives=drives, total_drives=total_drives, active_drives=active_drives, pending_drives=Pending_drives, closed_drives=Closed_drives, total_apps=total_apps, total_selected=total_selected)
 
 @app.route('/company/drives/create', methods=['GET', 'POST'])
 @company_required
@@ -547,23 +607,26 @@ def company_create_drive():
     if request.method == 'POST':
         job_title = request.form.get('job_title', '').strip()
         job_desc = request.form.get('job_desp', '').strip()
-        eligibility = request.form.get('eligibility', '').strip()
+        eligibility = request.form.get('eligible_criteria', '').strip()
         reg_skills = request.form.get('req_skills', '').strip()
         salary = request.form.get('salary_range', '').strip()
         job_type = request.form.get('job_type', '').strip()
         location = request.form.get('location', '').strip()
         deadline_str = request.form.get('application_deadline', '').strip()
 
-        if not job_title or not job_desc or not application_deadline_str:
+        if not job_title or not job_desc or not deadline_str:
             flash("Job title, description and application deadline are required fields..", 'warning')
-            return render_template('company_create_drive.html', form=request.form)
-        # try:
-        #     application_deadline = datetime.strptime(application_deadline_str, '%Y-%m-%d').date()
-        # except ValueError:
-        #     flash("Invalid date format. Use YYYY-MM-DD.", 'warning')
-        #     return render_template('company_create_drive.html', form=request.form)
-
-        deadline = datetime.strptime(deadline_str, '%Y-%m-%d').date()
+            return render_template('company_create_drive.html', form=request.form, job_type=Job_types)
+        
+        try:
+            deadline = datetime.strptime(deadline_str, '%Y-%m-%d').date()
+        except ValueError:
+            flash("Invalid date format. Use YYYY-MM-DD.", 'warning')
+            return render_template('company_create_drive.html', form=request.form, job_type=Job_types)
+        
+        if deadline < date.today():
+            flash("Deadline can not bee in the past..", "warning")
+            return render_template('company_create_drive.html', form=request.form, job_types=Job_types)
         drive = PlacementDrive(
             company_id=co.id,
             job_title=job_title,
@@ -580,7 +643,7 @@ def company_create_drive():
         db.session.commit()
         flash("Placement drive created successfully! It is pending admin approval.", 'success')
         return redirect(url_for('company_dashboard'))
-    return render_template('company_create_drive.html', form={})
+    return render_template('company_create_drive.html', form={}, job_type=Job_types)
 
 
 
@@ -599,14 +662,24 @@ def company_edit_drive(drive_id):
         deadline_str = request.form.get("application_deadline", '').strip()
         if not deadline_str:
             flash("wait a minute sir, Deadline is required..", 'warning')
-            return redirect(url_for('company_dashboard'))
+            return render_template('company_edit_drive.html', drive=drive, form=request.form, job_types=Job_types)
         
-        deadline = datetime.strptime(deadline_str, '%Y-%m-%d').date()
+        try:
+            deadline = datetime.strptime(deadline_str, '%Y-%m-%d').date()
+        except ValueError:
+            flash("Invalid date format. Please select a valid date.", 'warning')
+            return render_template('company_edit_drive.html', drive=drive,
+                                   form=request.form, job_types=Job_types)
+
+        if deadline < date.today():
+            flash("Deadline cannot be in the past.", 'warning')
+            return render_template('company_edit_drive.html', drive=drive,
+                                   form=request.form, job_types=Job_types)
         
         drive.job_title = request.form.get('job_title', '').strip()
         drive.job_desp = request.form.get('job_descp', '').strip()
         drive.eligible_criteria = request.form.get('eligible_criteria', '').strip()
-        drive.required_skills = request.form.get('reguired_skills', '').strip()
+        drive.required_skills = request.form.get('reg_skills', '').strip()
         drive.salary_range = request.form.get('salary_range', '').strip()
         drive.job_type = request.form.get('job_type', '').strip()
         drive.location = request.form.get('loaction', '').strip()
@@ -615,7 +688,7 @@ def company_edit_drive(drive_id):
         db.session.commit()
         flash("Drive updated and re-submitted for admin approval..", 'success')
         return redirect(url_for('company_dashboard'))
-    return render_template("Company_edit_drive.html", drive = drive, form={}, Job_types = Job_types)
+    return render_template("company_edit_drive.html", drive = drive, form={}, Job_types = Job_types)
 
 @app.route('/company/drive/<int:drive_id>/close', methods=["POST"])
 @company_required
@@ -650,7 +723,7 @@ def company_drive_applications(drive_id):
     query = Application.query.filter_by(drive_id=drive_id).join(Student)
     if status:
         query = query.filter(Application.status == status)
-    applications = query.order_by(Application.application_date.desc()).all()
+    applications = query.order_by(Application.applied_at.desc()).all()
 
     return render_template('company_applications.html',
         drive=drive, applications=applications,
@@ -660,8 +733,19 @@ def company_drive_applications(drive_id):
 @app.route('/company/applications/<int:app_id>/update', methods=['POST'])
 @company_required
 def company_update_application(app_id):
+    co = current_user.company_profile
     application = Application.query.get_or_404(app_id)
-    application.status= request.form.get('status', Applied_status)
+
+    if application.drive.company_id != co.id:
+        flash('Unauthorised.', 'danger')
+        abort(403)
+
+    new_status = request.form.get('status', Applied_status)
+    if new_status not in App_statuses:
+        flash('Invalid status.', 'warning')
+        return redirect(url_for('company_drive_applications', drive_id=application.drive_id))
+
+    application.status= new_status
     application.notes = request.form.get('notes', '').strip()
     db.session.commit()
     flash('Application status updated.', 'success')
@@ -758,14 +842,21 @@ def student_drives():
 def student_apply(drive_id):
     student = current_user.student_profile
     drive = PlacementDrive.query.get_or_404(drive_id)
+
     if not drive.is_open():
         flash("Sorry, This drive is not longer accepting applications.", "warning")
         return redirect(url_for('student_drives'))
     
-    application = Application(student_id=student.id, drive_id=drive_id)
-    db.session.add(application)
-    db.session.commit()
-    flash('Application submitted successfully!', 'success')
+    try:
+        application = Application(student_id=student.id, drive_id=drive_id)
+        db.session.add(application)
+        db.session.commit()
+        flash('Application submitted successfully..', 'success')
+    except IntegrityError:
+        db.session.rollback()
+        flash('You have already applied to this drive.', 'warning')
+
+    return redirect(url_for('student_drives'))
 
 
 
@@ -801,7 +892,7 @@ def student_history():
 def student_profile():
     student = current_user.student_profile
     if request.method == 'POST':
-        grad_yr  = request.form.get('graduation_year', '').strip()
+        grad_yr  = request.form.get('grad_year', '').strip()
         cgpa_str = request.form.get('cgpa', '').strip()
 
         student.stu_name = request.form.get('stu_name', '').strip()
@@ -827,8 +918,21 @@ def student_profile():
         return redirect(url_for('student_profile'))
 
     return render_template('student_profile.html',
-        student=student, departments = Departments, degree=Degrees)
+        student=student, departments = Departments, degrees=Degrees)
 
+
+@app.errorhandler(403)
+def forbidden(e):
+    return render_template('error_403.html'), 403
+
+@app.errorhandler(404)
+def not_found(e):
+    return render_template('error_404.html'), 404
+
+@app.errorhandler(500)
+def server_error(e):
+    db.session.rollback()
+    return render_template('error_500.html'), 500
 
 
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 
-from datetime import datetime
+from datetime import datetime, date
 
 db = SQLAlchemy()
 
@@ -17,9 +17,9 @@ Closed_status = "closed"
 Applied_status = "Applied"
 Shortlisted_status = "Shortlisted"
 Selected_status = "Selected"
-Rejected_status = "Rejected"
+Rejected_app = "Rejected"
 
-App_statuses = [Applied_status, Shortlisted_status, Selected_status, Rejected_status]
+App_statuses = [Applied_status, Shortlisted_status, Selected_status, Rejected_app]
 
 
 class User(UserMixin, db.Model):
@@ -94,7 +94,7 @@ class Student(db.Model):
 
     @property
     def profile_completeness(self):
-        checks = [(self.name, 15), (self.phone, 10), (self.roll_no, 10), (self.department, 10), (self.degree, 10), (self.grad_year, 5), (self.cgpa, 10), (self.skills, 15), (self.bio, 5), (self.resume_filename, 10), ]
+        checks = [(self.stu_name, 15), (self.phone, 10), (self.roll_no, 10), (self.department, 10), (self.degree, 10), (self.grad_year, 5), (self.cgpa, 10), (self.skills, 15), (self.bio, 5), (self.resume_filename, 10), ]
         return sum(pts for val, pts in checks if val)
     
     def __repr__(self):
@@ -119,7 +119,7 @@ class PlacementDrive(db.Model):
     def is_open(self):
         return (self.status == Approved_status and 
                 self.appication_deadline and 
-                self.appication_deadline >= datetime.date.today()
+                self.appication_deadline >= date.today()
                 )
     
     applications = db.relationship("Application", backref='drive', lazy=True, cascade='all, delete-orphan')
