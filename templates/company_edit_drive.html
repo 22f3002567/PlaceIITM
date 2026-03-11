@@ -3,77 +3,86 @@
 
 {% block content %}
 
-<p>
-<a href="{{ url_for('company_dashboard') }}">Back to Dashboard</a>
-</p>
+<div class="mb-4">
+    <a href="{{ url_for('company_dashboard') }}" class="text-decoration-none text-muted small">
+        <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+    </a>
+    <h2 class="fw-bold mt-1">Edit Placement Drive</h2>
+    <p class="text-muted mb-0">{{ drive.job_title }}</p>
+</div>
 
-<h2>Edit Placement Drive</h2>
-<p>{{ drive.job_title }}</p>
+<div class="alert alert-info mb-4">
+    <i class="bi bi-info-circle me-1"></i>
+    Saving changes will re-submit this drive for admin approval.
+</div>
 
-<p>
-<strong>Note:</strong> Saving changes will re-submit this drive for admin approval.
-</p>
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('company_edit_drive', drive_id=drive.id) }}">
 
-<hr>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Job Title *</label>
+                            <input type="text" class="form-control" name="job_title" required
+                                   value="{{ drive.job_title }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Job Type</label>
+                            <select name="job_type" class="form-select">
+                                <option value="">- Select -</option>
+                                {% for jt in job_types %}
+                                    <option value="{{ jt }}"
+                                        {% if drive.job_type == jt %}selected{% endif %}>
+                                        {{ jt }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Salary / CTC</label>
+                            <input type="text" class="form-control" name="salary_range"
+                                   value="{{ drive.salary_range or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Location</label>
+                            <input type="text" class="form-control" name="location"
+                                   value="{{ drive.location or '' }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Job Description *</label>
+                            <textarea class="form-control" name="job_desp" rows="4" required>{{ drive.job_desp or '' }}</textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Eligibility Criteria</label>
+                            <textarea class="form-control" name="eligible_criteria" rows="2">{{ drive.eligible_criteria or '' }}</textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Required Skills</label>
+                            <input type="text" class="form-control" name="req_skills"
+                                   value="{{ drive.req_skills or '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Application Deadline *</label>
+                            <input type="date" class="form-control" name="application_deadline" required
+                                   value="{{ drive.appication_deadline.strftime('%Y-%m-%d') if drive.appication_deadline else '' }}">
+                        </div>
+                    </div>
 
-<form method="POST" action="{{ url_for('company_edit_drive', drive_id=drive.id) }}">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save me-1"></i>Save & Resubmit
+                        </button>
+                        <a href="{{ url_for('company_dashboard') }}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
 
-<label>Job Title *</label><br>
-<input type="text" name="job_title" required
-value="{{ drive.job_title }}">
-
-<br><br>
-
-<label>Job Type</label><br>
-<select name="job_type">
-<option value="">Select</option>
-{% for jt in job_types %}
-<option value="{{ jt }}"
-{% if drive.job_type == jt %}selected{% endif %}>
-{{ jt }}
-</option>
-{% endfor %}
-</select>
-
-<br><br>
-
-<label>Salary / CTC</label><br>
-<input type="text" name="salary_range"
-value="{{ drive.salary_range or '' }}">
-
-<br><br>
-
-<label>Location</label><br>
-<input type="text" name="location"
-value="{{ drive.location or '' }}">
-
-<br><br>
-
-<label>Job Description *</label><br>
-<textarea name="job_description" rows="4" required>{{ drive.job_description or '' }}</textarea>
-
-<br><br>
-
-<label>Eligibility Criteria</label><br>
-<textarea name="eligibility_criteria" rows="2">{{ drive.eligibility_criteria or '' }}</textarea>
-
-<br><br>
-
-<label>Required Skills</label><br>
-<input type="text" name="req_skills"
-value="{{ drive.req_skills or '' }}">
-
-<br><br>
-
-<label>Application Deadline *</label><br>
-<input type="date" name="appication_deadline" required
-value="{{ drive.appication_deadline.strftime('%Y-%m-%d') if drive.application_deadline else '' }}">
-
-<br><br>
-
-<button type="submit">Save & Resubmit</button>
-<a href="{{ url_for('company_dashboard') }}">Cancel</a>
-
-</form>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

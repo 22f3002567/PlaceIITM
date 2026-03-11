@@ -1,131 +1,179 @@
 {% extends "base.html" %}
-{% block title %}My Profile- PlaceIIT{% endblock %}
+{% block title %}My Profile — PlaceIIT{% endblock %}
 
 {% block content %}
 
-<h2>My Profile</h2>
-<p>Keep your profile complete for better placement chances.</p>
+<div class="mb-4">
+    <h2 class="fw-bold mb-1">My Profile</h2>
+    <p class="text-muted mb-0">Keep your profile complete for better placement chances.</p>
+</div>
 
-<hr>
+<div class="row">
 
-<h3>Profile Summary</h3>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body text-center p-4">
+                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center
+                            justify-content-center mb-3"
+                     style="width:64px; height:64px; font-size:1.6rem; font-weight:700;">
+                    {{ student.stu_name[0].upper() }}
+                </div>
+                <h5 class="fw-bold mb-1">{{ student.stu_name }}</h5>
+                <p class="text-muted small mb-1">{{ student.roll_no or 'Roll no. not set' }}</p>
+                <p class="text-muted small mb-3">
+                    {{ student.department or '' }}
+                    {% if student.department and student.degree %} &mdash; {% endif %}
+                    {{ student.degree or '' }}
+                </p>
 
-<p><strong>Name:</strong> {{ student.name }}</p>
+                
+                <!-- {% set pc = student.profile_completeness %}
+                <div class="mb-1 d-flex justify-content-between small">
+                    <span class="fw-semibold">Profile Completeness</span>
+                    <span class="text-muted">{{ pc }}%</span>
+                </div>
+                <style>.prof-prog-bar { width: {{ pc }}%; }</style>
+                <div class="progress mb-3" style="height:8px;">
+                    <div class="progress-bar prof-prog-bar
+                        {% if pc < 50 %}bg-danger
+                        {% elif pc < 80 %}bg-warning
+                        {% else %}bg-success{% endif %}"></div>
+                </div> -->
+                {% set pc = student.profile_completeness %}
 
-<p><strong>Roll Number:</strong> {{ student.roll_number or 'Roll no. not set' }}</p>
+                <div class="mb-1 d-flex justify-content-between small">
+                    <span class="fw-semibold">Profile Completeness</span>
+                    <span class="text-muted">{{ pc }}%</span>
+                </div>
 
-<p>
-<strong>Department:</strong>
-{{ student.department or '' }}
-{% if student.department and student.degree %} - {% endif %}
-{{ student.degree or '' }}
-</p>
+                <div class="progress mb-3" style="height:8px;">
+                    <div class="progress-bar
+                        {% if pc < 25 %}w-25
+                        {% elif pc < 50 %}w-50
+                        {% elif pc < 75 %}w-75
+                        {% else %}w-100{% endif %}
+                        
+                        {% if pc < 50 %}bg-danger
+                        {% elif pc < 80 %}bg-warning
+                        {% else %}bg-success{% endif %}">
+                    </div>
+                </div>
 
-{% set pc = student.profile_completeness %}
+                {% if student.resume_filename %}
+                <p class="small mb-0">
+                    <a href="{{ url_for('serve_resume', filename=student.resume_filename) }}"
+                       target="_blank" class="text-primary">
+                        <i class="bi bi-file-pdf me-1"></i>View Resume
+                    </a>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 
-<p><strong>Profile Completeness:</strong> {{ pc }}%</p>
+    <!-- Edit form -->
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h5 class="card-title fw-semibold mb-3">Edit Profile</h5>
 
-{% if student.resume_filename %}
-<p>
-<strong>Resume:</strong>
-<a href="{{ url_for('serve_resume', filename=student.resume_filename) }}" target="_blank">
-View Resume
-</a>
-</p>
-{% endif %}
+                <form method="POST" action="{{ url_for('student_profile') }}"
+                      enctype="multipart/form-data">
 
-<hr><hr>
+                    <h6 class="fw-semibold text-muted text-uppercase mb-3"
+                        style="letter-spacing:0.5px; font-size:0.78rem;">
+                        Personal Information
+                    </h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Full Name</label>
+                            <input type="text" class="form-control" name="stu_name"
+                                   value="{{ student.stu_name }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Phone</label>
+                            <input type="tel" class="form-control" name="phone"
+                                   value="{{ student.phone or '' }}"
+                                   placeholder="10-digit mobile number">
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold">Department</label>
+                            <select name="department" class="form-select">
+                                <option value="">— Select —</option>
+                                {% for d in departments %}
+                                    <option value="{{ d }}"
+                                        {% if student.department == d %}selected{% endif %}>
+                                        {{ d }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Degree</label>
+                            <select name="degree" class="form-select">
+                                <option value="">— Select —</option>
+                                {% for d in degrees %}
+                                    <option value="{{ d }}"
+                                        {% if student.degree == d %}selected{% endif %}>
+                                        {{ d }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Grad. Year</label>
+                            <input type="number" class="form-control" name="grad_year"
+                                   value="{{ student.grad_year or '' }}"
+                                   min="2020" max="2035">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">CGPA</label>
+                            <input type="number" class="form-control" name="cgpa"
+                                   value="{{ student.cgpa or '' }}"
+                                   step="0.01" min="0" max="10">
+                        </div>
+                        <div class="col-md-9">
+                            <label class="form-label fw-semibold">
+                                Skills <small class="text-muted fw-normal">(comma-separated)</small>
+                            </label>
+                            <input type="text" class="form-control" name="skills"
+                                   value="{{ student.skills or '' }}"
+                                   placeholder="e.g. Python, ML, SQL">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Bio</label>
+                            <textarea class="form-control" name="bio" rows="3"
+                                      placeholder="A short bio about yourself…">{{ student.bio or '' }}</textarea>
+                        </div>
+                    </div>
 
-<h3>Edit Profile</h3>
+                    <hr class="mb-4">
 
-<form method="POST"
-      action="{{ url_for('student_profile') }}"
-      enctype="multipart/form-data">
+                    <h6 class="fw-semibold text-muted text-uppercase mb-3"
+                        style="letter-spacing:0.5px; font-size:0.78rem;">
+                        Resume Upload <small class="text-muted fw-normal">(PDF only, max 5 MB)</small>
+                    </h6>
+                    <div class="mb-4">
+                        {% if student.resume_filename %}
+                        <div class="alert alert-light border small mb-2">
+                            <i class="bi bi-file-pdf text-danger me-1"></i>
+                            Current: <strong>{{ student.resume_filename }}</strong>
+                            &mdash; upload a new file to replace it.
+                        </div>
+                        {% endif %}
+                        <input type="file" class="form-control" name="resume" accept=".pdf">
+                    </div>
 
-      <h4>Personal Information</h4>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-1"></i>Save Changes
+                    </button>
 
-      <label>Full Name</label><br>
-      <input type="text" name="name"
-      value="{{ student.name }}" required>
+                </form>
+            </div>
+        </div>
+    </div>
 
-      <br><br>
-
-      <label>Phone</label><br>
-      <input type="tel" name="phone"
-      value="{{ student.phone or '' }}"
-      placeholder="10-digit mobile number">
-
-      <br><br>
-
-      <label>Department</label><br>
-      <select name="department">
-      <option value="">Select</option>
-      {% for d in departments %}
-      <option value="{{ d }}"
-      {% if student.department == d %}selected{% endif %}>
-      {{ d }}
-      </option>
-      {% endfor %}
-      </select>
-
-      <br><br>
-
-      <label>Degree</label><br>
-      <select name="degree">
-      <option value="">Select</option>
-      {% for d in degrees %}
-      <option value="{{ d }}"
-      {% if student.degree == d %}selected{% endif %}>
-      {{ d }}
-      </option>
-      {% endfor %}
-      </select>
-
-      <br><br>
-
-      <label>Graduation Year</label><br>
-      <input type="number" name="graduation_year"
-      value="{{ student.graduation_year or '' }}"
-      min="2020" max="2035">
-
-      <br><br>
-
-      <label>CGPA</label><br>
-      <input type="number" name="cgpa"
-      value="{{ student.cgpa or '' }}"
-      step="0.01" min="0" max="10">
-
-      <br><br>
-
-      <label>Skills (comma-separated)</label><br>
-      <input type="text" name="skills"
-      value="{{ student.skills or '' }}"
-      placeholder="e.g. Python, ML, SQL">
-
-      <br><br>
-
-      <label>Bio</label><br>
-      <textarea name="bio" rows="3"
-      placeholder="A short bio about yourself…">{{ student.bio or '' }}</textarea>
-
-      <hr>
-
-      <h4>Resume Upload (PDF only, max 5 MB)</h4>
-
-      {% if student.resume_filename %}
-      <p>
-      Current file: <strong>{{ student.resume_filename }}</strong>
-      <br>
-      Upload a new file to replace it.
-      </p>
-      {% endif %}
-
-      <input type="file" name="resume" accept=".pdf">
-
-      <br><br>
-
-      <button type="submit">Save Changes</button>
-
-</form>
+</div>
 
 {% endblock %}

@@ -3,126 +3,184 @@
 
 {% block content %}
 
-<h2>Company Dashboard</h2>
-<p>Welcome back, {{ company.company_name }}</p>
+<div class="mb-4">
+    <h2 class="fw-bold mb-1">Company Dashboard</h2>
+    <p class="text-muted mb-0">Welcome back, {{ company.company_name }}</p>
+</div>
 
-<hr>
-
+<!-- Pending approval notice -->
 {% if company.approval_status == 'pending' %}
-<p>
-<strong>Pending Approval:</strong>
-Your company registration is under review by the Placement Cell.
-You cannot post drives until approved.
-</p>
+<div class="alert alert-warning mb-4">
+    <i class="bi bi-clock me-2"></i>
+    <strong>Pending Approval:</strong> Your company registration is under review by the Placement Cell.
+    You cannot post drives until approved.
+</div>
 {% elif company.approval_status == 'rejected' %}
-<p>
-<strong>Registration Rejected:</strong>
-Please contact the Placement Cell for more information.
-</p>
+<div class="alert alert-danger mb-4">
+    <i class="bi bi-x-circle me-2"></i>
+    <strong>Registration Rejected:</strong> Please contact the Placement Cell for more information.
+</div>
 {% endif %}
 
-<hr>
+<!-- Stat cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 p-4 bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-1">Total Drives</h6>
+                    <h3 class="mb-0 fw-bold">{{ total_drives }}</h3>
+                </div>
+                <i class="bi bi-briefcase-fill fs-2 text-primary"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 p-4 bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-1">Active Drives</h6>
+                    <h3 class="mb-0 fw-bold">{{ active_drives }}</h3>
+                </div>
+                <i class="bi bi-check-circle-fill fs-2 text-success"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 p-4 bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-1">Total Applicants</h6>
+                    <h3 class="mb-0 fw-bold">{{ total_apps }}</h3>
+                </div>
+                <i class="bi bi-people-fill fs-2 text-info"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 p-4 bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-1">Selected</h6>
+                    <h3 class="mb-0 fw-bold">{{ total_selected }}</h3>
+                </div>
+                <i class="bi bi-patch-check-fill fs-2 text-warning"></i>
+            </div>
+        </div>
+    </div>
+</div>
 
-<h3>Statistics</h3>
+<!-- Quick actions -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <h5 class="card-title fw-semibold mb-3">Quick Actions</h5>
+        <div class="row g-2">
+            <div class="col-md-3">
+                <a href="{{ url_for('company_create_drive') }}" class="btn btn-primary w-100">
+                    <i class="bi bi-plus-circle me-1"></i>Post New Drive
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{{ url_for('company_profile') }}" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-person-badge me-1"></i>Edit Profile
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 
-<p><strong>Total Drives:</strong> {{ total_drives }}</p>
-<p><strong>Active Drives:</strong> {{ active_drives }}</p>
-<p><strong>Total Applicants:</strong> {{ total_apps }}</p>
-<p><strong>Selected:</strong> {{ total_selected }}</p>
-
-<hr>
-
-<h3>Quick Actions</h3>
-
-<p>
-<a href="{{ url_for('company_create_drive') }}">Post New Drive</a>
-</p>
-
-<p>
-<a href="{{ url_for('company_profile') }}">Edit Profile</a>
-</p>
-
-<hr>
-
-
-<h3>My Placement Drives</h3>
-
-<p>
-<a href="{{ url_for('company_create_drive') }}">Post Drive</a>
-</p>
-
-{% if drives %}
-
-<table border="1">
-
-<tr>
-<th>Job Title</th>
-<th>Type</th>
-<th>Salary</th>
-<th>Deadline</th>
-<th>Applicants</th>
-<th>Status</th>
-<th>Actions</th>
-</tr>
-
-{% for drive in drives %}
-
-<tr>
-
-<td>{{ drive.job_title }}</td>
-
-<td>{{ drive.job_type or '-' }}</td>
-
-<td>{{ drive.salary_range or '-' }}</td>
-
-<td>
-{% if drive.appication_deadline %}
-{{ drive.appication_deadline.strftime('%d %b %Y') }}
-{% else %}
--
-{% endif %}
-</td>
-
-<td>{{ drive.applications | length }}</td>
-
-<td>{{ drive.status }}</td>
-
-<td>
-
-<a href="{{ url_for('company_drive_applications', drive_id=drive.id) }}">View Applications</a>
-
-{% if drive.status in ['pending','rejected'] %}
-<a href="{{ url_for('company_edit_drive', drive_id=drive.id) }}">Edit</a>
-{% endif %}
-
-{% if drive.status == 'approved' %}
-<form method="POST" action="{{ url_for('company_close_drive', drive_id=drive.id) }}">
-<button type="submit">Close</button>
-</form>
+<!-- Analytics chart -->
+{% if app_chart %}
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <h5 class="card-title fw-semibold mb-3">Applicants per Drive</h5>
+        <img src="data:image/png;base64,{{ app_chart }}" class="img-fluid rounded" alt="Applicants per Drive Chart">
+    </div>
+</div>
 {% endif %}
 
-{% if drive.status in ['pending','rejected','closed'] %}
-<form method="POST" action="{{ url_for('company_delete_drive', drive_id=drive.id) }}">
-<button type="submit">Delete</button>
-</form>
-{% endif %}
+<!-- My drives -->
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="card-title fw-semibold mb-0">My Placement Drives</h5>
+            <a href="{{ url_for('company_create_drive') }}" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus me-1"></i>Post Drive
+            </a>
+        </div>
 
-</td>
-
-</tr>
-
-{% endfor %}
-
-</table>
-
-{% else %}
-
-<p>No drives posted yet.</p>
-
-<p>
-<a href="{{ url_for('company_create_drive') }}">Post your first drive</a>
-</p>
-
-{% endif %}
+        {% if drives %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Job Title</th>
+                        <th>Type</th>
+                        <th>Salary</th>
+                        <th>Deadline</th>
+                        <th>Applicants</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for drive in drives %}
+                    <tr>
+                        <td class="fw-semibold">{{ drive.job_title }}</td>
+                        <td class="text-muted small">{{ drive.job_type or '-' }}</td>
+                        <td class="text-muted small">{{ drive.salary_range or '-' }}</td>
+                        <td class="text-muted small">
+                            {% if drive.appication_deadline %}
+                                {{ drive.appication_deadline.strftime('%d %b %Y') }}
+                            {% else %}:-:{% endif %}
+                        </td>
+                        <td class="text-center">{{ drive.applications | length }}</td>
+                        <td>
+                            {% if drive.status == 'pending' %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            {% elif drive.status == 'approved' %}
+                                <span class="badge bg-success">Approved</span>
+                            {% elif drive.status == 'rejected' %}
+                                <span class="badge bg-danger">Rejected</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Closed</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1 flex-wrap">
+                                <a href="{{ url_for('company_drive_applications', drive_id=drive.id) }}"
+                                   class="btn btn-sm btn-outline-primary">
+                                    View Apps
+                                </a>
+                                {% if drive.status in ['pending', 'rejected'] %}
+                                <a href="{{ url_for('company_edit_drive', drive_id=drive.id) }}"
+                                   class="btn btn-sm btn-outline-secondary">Edit</a>
+                                {% endif %}
+                                {% if drive.status == 'approved' %}
+                                <form method="POST" action="{{ url_for('company_close_drive', drive_id=drive.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">Close</button>
+                                </form>
+                                {% endif %}
+                                {% if drive.status in ['pending', 'rejected', 'closed'] %}
+                                <form method="POST" action="{{ url_for('company_delete_drive', drive_id=drive.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <div class="text-center py-4 text-muted">
+                <i class="bi bi-briefcase fs-1 d-block mb-2 opacity-25"></i>
+                <p class="mb-2">No drives posted yet.</p>
+                <a href="{{ url_for('company_create_drive') }}" class="btn btn-sm btn-primary">Post your first drive</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
 
 {% endblock %}

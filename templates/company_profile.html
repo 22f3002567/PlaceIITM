@@ -1,110 +1,120 @@
 {% extends "base.html" %}
-{% block title %}Company Profile - PlaceIIT{% endblock %}
+{% block title %}Company Profile - PlaceIITM{% endblock %}
 
 {% block content %}
 
-<h2>Company Profile</h2>
-<p>Update your company information visible to students and admin.</p>
+<div class="mb-4">
+    <h2 class="fw-bold mb-1">Company Profile</h2>
+    <p class="text-muted mb-0">Update your company information visible to students and admin.</p>
+</div>
 
-<hr>
+<div class="row">
 
-<h3>Company Information</h3>
+    <!-- Profile summary -->
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body text-center p-4">
+                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center
+                            justify-content-center mb-3" style="width:64px; height:64px; font-size:1.6rem; font-weight:700;">
+                    {{ company.company_name[0].upper() }}
+                </div>
+                <h5 class="fw-bold mb-1">{{ company.company_name }}</h5>
+                <p class="text-muted small mb-2">{{ company.industry or 'Industry not set' }}</p>
+                <p class="text-muted small mb-3">
+                    <i class="bi bi-geo-alt me-1"></i>{{ company.location or 'Location not set' }}
+                </p>
+                <div class="mb-2">
+                    {% if company.approval_status == 'approved' %}
+                        <span class="badge bg-success">Approved</span>
+                    {% elif company.approval_status == 'pending' %}
+                        <span class="badge bg-warning text-dark">Pending Approval</span>
+                    {% else %}
+                        <span class="badge bg-danger">Rejected</span>
+                    {% endif %}
+                </div>
+                {% if company.website %}
+                <p class="small mb-0">
+                    <a href="{{ company.website }}" target="_blank" class="text-primary">
+                        <i class="bi bi-link-45deg me-1"></i>{{ company.website }}
+                    </a>
+                </p>
+                {% endif %}
+            </div>
+        </div>
 
-<p><strong>Company Name:</strong> {{ company.company_name }}</p>
+        <!-- HR info -->
+        <div class="card shadow-sm border-0 mt-3">
+            <div class="card-body p-3">
+                <h6 class="fw-semibold mb-2">HR Contact</h6>
+                <p class="text-muted small mb-1">
+                    <i class="bi bi-person me-1"></i>{{ company.hr_name or 'Not set' }}
+                </p>
+                <p class="text-muted small mb-0">
+                    <i class="bi bi-telephone me-1"></i>{{ company.hr_contact or 'Not set' }}
+                </p>
+            </div>
+        </div>
+    </div>
 
-<p>
-<strong>Industry:</strong>
-{{ company.industry or 'Industry not set' }}
-</p>
+    <!-- Edit form -->
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h5 class="card-title fw-semibold mb-3">Edit Profile</h5>
+                <form method="POST" action="{{ url_for('company_profile') }}">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Industry</label>
+                            <select name="industry" class="form-select">
+                                <option value="">- Select -</option>
+                                {% for ind in industries %}
+                                    <option value="{{ ind }}"
+                                        {% if company.industry == ind %}selected{% endif %}>
+                                        {{ ind }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Location</label>
+                            <input type="text" class="form-control" name="location"
+                                   value="{{ company.location or '' }}"
+                                   placeholder="e.g. Bengaluru, Karnataka">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">HR Name</label>
+                            <input type="text" class="form-control" name="hr_name"
+                                   value="{{ company.hr_name or '' }}"
+                                   placeholder="e.g. Priya Sharma">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">HR Contact</label>
+                            <input type="text" class="form-control" name="hr_contact"
+                                   value="{{ company.hr_contact or '' }}"
+                                   placeholder="Phone or email">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Website</label>
+                            <input type="url" class="form-control" name="website"
+                                   value="{{ company.website or '' }}"
+                                   placeholder="https://www.company.com">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Description</label>
+                            <textarea class="form-control" name="description" rows="3"
+                                      placeholder="Brief description of your company…">{{ company.description or '' }}</textarea>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-1"></i>Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-<p>
-<strong>Location:</strong>
-{{ company.location or 'Location not set' }}
-</p>
-
-<p>
-<strong>Status:</strong>
-{% if company.approval_status == 'approved' %}
-Approved
-{% elif company.approval_status == 'pending' %}
-Pending Approval
-{% else %}
-Rejected
-{% endif %}
-</p>
-
-{% if company.website %}
-<p>
-<strong>Website:</strong>
-<a href="{{ company.website }}" target="_blank">
-{{ company.website }}
-</a>
-</p>
-{% endif %}
-
-<hr>
-
-<h3>HR Contact</h3>
-
-<p><strong>HR Name:</strong> {{ company.hr_name or 'Not set' }}</p>
-
-<p><strong>HR Contact:</strong> {{ company.hr_contact or 'Not set' }}</p>
-
-<hr>
-
-<h3>Edit Profile</h3>
-
-<form method="POST" action="{{ url_for('company_profile') }}">
-
-    <label>Industry</label><br>
-    <select name="industry">
-    <option value="">Select</option>
-    {% for ind in industries %}
-    <option value="{{ ind }}"
-    {% if company.industry == ind %}selected{% endif %}>
-    {{ ind }}
-    </option>
-    {% endfor %}
-    </select>
-
-    <br><br>
-
-    <label>Location</label><br>
-    <input type="text" name="location"
-    value="{{ company.location or '' }}"
-    placeholder="ex: Bengaluru, Karnataka">
-
-    <br><br>
-
-    <label>HR Name</label><br>
-    <input type="text" name="hr_name"
-    value="{{ company.hr_name or '' }}"
-    placeholder="e.g. Priya Sharma">
-
-    <br><br>
-
-    <label>HR Contact</label><br>
-    <input type="text" name="hr_contact"
-    value="{{ company.hr_contact or '' }}"
-    placeholder="Phone or email">
-
-    <br><br>
-
-    <label>Website</label><br>
-    <input type="url" name="website"
-    value="{{ company.website or '' }}"
-    placeholder="https://www.company.com">
-
-    <br><br>
-
-    <label>Description</label><br>
-    <textarea name="description" rows="3"
-    placeholder="Brief description of your company…">{{ company.description or '' }}</textarea>
-
-    <br><br>
-
-    <button type="submit">Save Changes</button>
-
-</form>
+</div>
 
 {% endblock %}

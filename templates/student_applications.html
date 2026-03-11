@@ -1,91 +1,142 @@
 {% extends "base.html" %}
-{% block title %}My Applications - PlaceIIT{% endblock %}
+{% block title %}My Applications- PlaceIITM{% endblock %}
 
 {% block content %}
 
-<h2>My Applications</h2>
-<p>Track the status of all your placement applications.</p>
+<div class="mb-4">
+    <h2 class="fw-bold mb-1">My Applications</h2>
+    <p class="text-muted mb-0">Track the status of all your placement applications.</p>
+</div>
 
-<hr>
-
-<h3>Filter Applications</h3>
-
-<form method="GET" action="{{ url_for('student_applications') }}">
-
-    <label>Status</label><br>
-
-    <select name="status">
-
-    <option value="">All</option>
-    {% for s in app_statuses %}
-    <option value="{{ s }}" {% if status_filter == s %}selected{% endif %}>
-    {{ s }}
-    </option>
-    {% endfor %}
-    </select>
-
-<br><br>
-
-<button type="submit">Filter</button>
-<a href="{{ url_for('student_applications') }}">Clear</a>
-
-</form>
-
-<hr>
+<!-- Filter -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('student_applications') }}">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Filter by Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All</option>
+                        {% for s in app_statuses %}
+                            <option value="{{ s }}" {% if status_filter == s %}selected{% endif %}>{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-funnel me-1"></i>Filter
+                    </button>
+                </div>
+                <div class="col-md-2">
+                    <a href="{{ url_for('student_applications') }}" class="btn btn-outline-secondary w-100">Clear</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 
 {% if applications %}
+    {% for app in applications %}
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-body p-4">
 
-{% for app in applications %}
+            
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <h6 class="fw-bold mb-0">{{ app.drive.job_title }}</h6>
+                    <small class="text-muted">
+                        {{ app.drive.company.company_name }}
+                        {% if app.drive.location %} &mdash; {{ app.drive.location }}{% endif %}
+                    </small>
+                </div>
+                <small class="text-muted">Applied {{ app.applied_at.strftime('%d %b %Y') }}</small>
+            </div>
 
-<hr>
+            
+            {% if app.status == 'Rejected' %}
+            
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="badge bg-danger px-3 py-2">
+                    <i class="bi bi-x-circle me-1"></i>Application Rejected
+                </span>
+            </div>
+            {% else %}
+            
+            <div class="d-flex align-items-center mb-3" style="gap:0;">
 
-<h3>{{ app.drive.job_title }}</h3>
+                
+                <div class="text-center" style="min-width:80px;">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center
+                                {% if app.status in ['Applied','Shortlisted','Selected'] %}bg-primary text-white{% else %}bg-light text-muted border{% endif %}"
+                         style="width:30px; height:30px; font-size:13px; font-weight:700;">
+                        {% if app.status in ['Shortlisted','Selected'] %}
+                            <i class="bi bi-check-lg"></i>
+                        {% else %}1{% endif %}
+                    </div>
+                    <div class="small mt-1 {% if app.status in ['Applied','Shortlisted','Selected'] %}text-primary fw-semibold{% else %}text-muted{% endif %}">
+                        Applied
+                    </div>
+                </div>
 
-<p>
-<strong>Company:</strong>
-{{ app.drive.company.company_name }}
-{% if app.drive.location %} - {{ app.drive.location }}{% endif %}
-</p>
+                
+                <div class="flex-grow-1 {% if app.status in ['Shortlisted','Selected'] %}bg-primary{% else %}bg-light{% endif %}"
+                     style="height:3px; margin-bottom:18px;"></div>
 
-<p>
-<strong>Applied On:</strong>
-{{ app.appication_date.strftime('%d %b %Y') }}
-</p>
+                
+                <div class="text-center" style="min-width:90px;">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center
+                                {% if app.status in ['Shortlisted','Selected'] %}bg-warning text-dark{% else %}bg-light text-muted border{% endif %}"
+                         style="width:30px; height:30px; font-size:13px; font-weight:700;">
+                        {% if app.status == 'Selected' %}
+                            <i class="bi bi-check-lg"></i>
+                        {% else %}2{% endif %}
+                    </div>
+                    <div class="small mt-1 {% if app.status in ['Shortlisted','Selected'] %}text-warning fw-semibold{% else %}text-muted{% endif %}">
+                        Shortlisted
+                    </div>
+                </div>
 
-{% if app.status == 'Rejected' %}
+                
+                <div class="flex-grow-1 {% if app.status == 'Selected' %}bg-success{% else %}bg-light{% endif %}"
+                     style="height:3px; margin-bottom:18px;"></div>
 
-<p><strong>Status:</strong> Rejected</p>
+                
+                <div class="text-center" style="min-width:80px;">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center
+                                {% if app.status == 'Selected' %}bg-success text-white{% else %}bg-light text-muted border{% endif %}"
+                         style="width:30px; height:30px; font-size:13px; font-weight:700;">
+                        {% if app.status == 'Selected' %}
+                            <i class="bi bi-check-lg"></i>
+                        {% else %}3{% endif %}
+                    </div>
+                    <div class="small mt-1 {% if app.status == 'Selected' %}text-success fw-semibold{% else %}text-muted{% endif %}">
+                        Selected
+                    </div>
+                </div>
+
+            </div>
+            {% endif %}
+
+            
+            {% if app.notes %}
+            <div class="alert alert-light border mb-0 small">
+                <i class="bi bi-chat-left-text me-1 text-muted"></i>
+                <strong>Note from company:</strong> {{ app.notes }}
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+    {% endfor %}
 
 {% else %}
-
-<p><strong>Status:</strong> {{ app.status }}</p>
-
-<p>
-Application Progress:
-Applied →
-Shortlisted →
-Selected
-</p>
-
-{% endif %}
-
-{% if app.notes %}
-<p>
-<strong>Note from company:</strong>
-{{ app.notes }}
-</p>
-{% endif %}
-
-{% endfor %}
-
-{% else %}
-
-<p>No applications yet.</p>
-
-<p>
-<a href="{{ url_for('student_drives') }}">Browse Drives</a>
-</p>
-
+    <div class="card shadow-sm border-0">
+        <div class="card-body text-center py-5 text-muted">
+            <i class="bi bi-send fs-1 d-block mb-2 opacity-25"></i>
+            <p class="mb-2">No applications yet.</p>
+            <a href="{{ url_for('student_drives') }}" class="btn btn-sm btn-primary">Browse Drives</a>
+        </div>
+    </div>
 {% endif %}
 
 {% endblock %}
