@@ -73,7 +73,7 @@
                         </td>
                         <td>
                             <div class="d-flex flex-wrap gap-1">
-                                <a href="{{ url_for('admin_edit_student', stu_id=st.id) }}"
+                                <a href="{{ url_for('admin_student_edit', stu_id=st.id) }}"
                                    class="btn btn-sm btn-outline-primary">Edit</a>
 
                                 <form method="POST" action="{{ url_for('admin_student_blacklist', stu_id=st.id) }}">

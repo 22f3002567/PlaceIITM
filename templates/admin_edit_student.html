@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Edit Student — PlaceIIT{% endblock %}
+{% block title %}Edit Student{% endblock %}
 
 {% block content %}
 
@@ -15,7 +15,7 @@
     <div class="col-md-8">
         <div class="card shadow-sm border-0">
             <div class="card-body p-4">
-                <form method="POST" action="{{ url_for('admin_edit_student', st_id=student.id) }}">
+                <form method="POST" action="{{ url_for('admin_student_edit', stu_id=student.id) }}">
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Full Name</label>

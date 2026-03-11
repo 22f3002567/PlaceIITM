@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Student Dashboard - PlaceIIT{% endblock %}
+{% block title %}Student Dashboard - PlaceIITM{% endblock %}
 
 {% block content %}
 
@@ -22,7 +22,7 @@
         <span class="text-muted small">{{ pc }}%</span>
     </div>
     <div class="progress" style="height:6px;">
-        <div class="progress-bar bg-warning dash-prog-bar"></div>
+        <div class="progress-bar bg-warning" style="width:{{ pc }}%;"></div>
     </div>
 </div>
 {% endif %}

@@ -507,7 +507,7 @@ def admin_company_edit(co_id):
         db.session.commit()
         flash(f"Company '{co.company_name}' updated successfully!", 'success')
         return redirect(url_for('admin_companies'))
-    return render_template('admin_company_edit.html', company=co, industries=Industries)
+    return render_template('admin_edit_company.html', company=co, industries=Industries)
 
 @app.route('/admin/students')
 @admin_required
@@ -549,12 +549,11 @@ def admin_student_edit(stu_id):
         stu.skills = request.form.get('skills', '').strip()
         stu.bio = request.form.get('bio', '').strip()
         stu.roll_no = request.form.get('roll_no', '').strip()
-        stu.email = request.form.get('email', '').strip()
          
         db.session.commit()
         flash(f"Student '{stu.stu_name}' updated successfully!", 'success')
         return redirect(url_for('admin_students'))
-    return render_template('admin_student_edit.html', student=stu, departments=Departments, degrees=Degrees)
+    return render_template('admin_edit_student.html', student=stu, departments=Departments, degrees=Degrees)
 
 @app.route('/admin/students/<int:stu_id>/delete', methods=['POST'])
 @admin_required
